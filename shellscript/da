@@ -1,0 +1,2 @@
+#!/bin/sh
+awk 'BEGIN{{maincmd_pre="find . -maxdepth 1 -type "}{maincmd_post=" -exec du -hs {} + | sort -k1,1rh -k2,2"}{rule="\x27 BEGIN{FS=\"\t\"}/^.*/{{gsub(/^ */,\"\",$1)}{gsub(/^\\.\\//,\"\",$2)}print \"\t\"$1\"\t\"$2}\x27"}{system("echo directory:")}{system(maincmd_pre"d"maincmd_post"|awk "rule)}{system("echo file:")}{system(maincmd_pre"f"maincmd_post"|awk "rule)}{system("echo total:")}{system("du -ch|tail -n 1|awk "rule)}}'
