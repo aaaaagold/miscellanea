@@ -95,8 +95,6 @@ public:
             }
         }
         else return;
-
-        good=true;
     }
     T query(size_t begin,size_t end)
     {
