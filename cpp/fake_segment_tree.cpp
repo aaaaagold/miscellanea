@@ -17,7 +17,7 @@ class segtree
         T rtv(T(NULL));
         while(end)
         {
-            size_t tmp=end&(-end); // 2's complement
+            size_t tmp=end&(-end); // magic with 2's complement
             for(;(tmp&(one<<rmb))==0;++rmb)
                 ;
             rtv+=tree[rmb][(end>>rmb)-1];
