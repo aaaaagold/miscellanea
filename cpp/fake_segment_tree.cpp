@@ -8,13 +8,29 @@ class segtree
     size_t *sizes;
     size_t lv;
     size_t sizen;
-    bool good;
+    T before(size_t end)
+    {
+        if(end>=sizen) return tree[lv-1][0];
+        if(end==0) return T(NULL);
+        const size_t one=1;
+        size_t rmb=0; // right most bit===1<<rmb
+        T rtv(T(NULL));
+        while(end)
+        {
+            size_t tmp=end&(-end); // 2's complement
+            for(;(tmp&(one<<rmb))==0;++rmb)
+                ;
+            rtv+=tree[rmb][(end>>rmb)-1];
+            end-=tmp;
+        }
+        return rtv;
+    }
 public:
-    segtree():tree(NULL),sizes(NULL),lv(0),sizen(0),good(false)
+    segtree():tree(NULL),sizes(NULL),lv(0),sizen(0)
     {
         ;
     }
-    segtree(const T *arr,const size_t &n):tree(NULL),sizes(NULL),lv(0),sizen(0),good(false)
+    segtree(const T *arr,const size_t &n):tree(NULL),sizes(NULL),lv(0),sizen(0)
     {
         init(arr,n);
     }
@@ -81,31 +97,6 @@ public:
         else return;
 
         good=true;
-    }
-    inline bool isgood()
-    {
-        return good;
-    }
-    inline bool operator!()
-    {
-        return !good;
-    }
-    T before(size_t end)
-    {
-        if(end>=sizen) return tree[lv-1][0];
-        if(end==0) return T(NULL);
-        const size_t one=1;
-        size_t rmb=0; // right most bit===1<<rmb
-        T rtv(T(NULL));
-        while(end)
-        {
-            size_t tmp=end&(-end); // 2's complement
-            for(;(tmp&(one<<rmb))==0;++rmb)
-                ;
-            rtv+=tree[rmb][(end>>rmb)-1];
-            end-=tmp;
-        }
-        return rtv;
     }
     T query(size_t begin,size_t end)
     {
