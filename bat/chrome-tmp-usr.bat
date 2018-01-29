@@ -17,8 +17,12 @@ set dirPrefix=%TEMP%\User Data
 @if exist %dir%\lockfile (
  goto mainProcessNotFound_check_lockfile 
 )
+@ping -n 2 localhost > nul 
+@if exist %dir%\lockfile (
+ goto mainProcessNotFound_check_lockfile 
+)
 @rmdir /s /q %dir% 
 @goto END
 
 :END
-exit /b 0
+@exit /b 0
