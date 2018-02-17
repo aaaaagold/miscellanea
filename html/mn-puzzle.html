@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style id="css-default">
+/* default */
+body{background-color:#000000;position:absolute;}
+.input-panel>div{display:inline-block;}
+.input-panel>div>div{color:#FFFFFF;}
+.board{padding-top:21px;position:relative;width:256px;height:256px;background-color:rgba(111,111,111,0.5);}
+.board>div{margin:0px 0px 10px 0px;position:relative;width:256px;height:64px;text-align:center;}
+.board>div>div{margin:4px;position:relative;width:64px;height:64px;display:inline-block;overflow:hidden;border:1px solid white;}
+.board>div>div>input{width:100%;height:100%;color:#FFFFFF;text-align:center;border:0px solid rgba(0,0,0,0);}
+.btn{background-color:rgba(111,111,0,0.5);color:#FFFFFF;border:1px solid yellow;text-align:center;}
+.btn:hover{background-color:rgba(155,155,0,0.5);}
+.btn:active{background-color:rgba(222,222,0,0.5);}
+*{background-color:rgba(0,0,0,0);}
+div{color:#FFFFFF;}
+</style>
+<style id="css-dynamic-bdsz">
+/* change of w/h of board */
+.board{width:256px;height:256px;}
+.board>div{width:256px;height:64px;}
+</style>
+<script>
+"use strict";
+
+let q={};
+
+(function(){
+
+// convenient
+let d=document;
+q.numDelta = function numDelta(str,delta){return str.replace(/\-?[0-9]*\.?[0-9]*/g,function(m){return m!=""?Number(m)+delta:""})};
+q.ge = function ge(id){return d.getElementById(id);};
+q.ce = function ce(tag){return d.createElement(tag);};
+q.ct = function ct(txt){return d.createTextNode(txt);};
+q.sa = function sa(o,att,inn){o.setAttribute(att,inn);return o;};
+q.ac = function ac(o,c){o.appendChild(c);return o;};
+q.ae = function ae(o,e,f){
+	if(o.attachEvent) o.attachEvent("on"+e,f);
+	else if(o.addEventListener) o.addEventListener(e,f);
+	else console.log("not support");
+	return o;
+};
+q.centerize = function centerize(o){
+	if(o==d.body) return o;
+	let prng=o.parentNode.range();
+	let orng=o.range();
+	o.sa('style','left:'+((prng.width-orng.width)/2)+'px;top:'+((prng.height-orng.height)/2)+'px;');
+	return o;
+};
+HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
+HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
+HTMLElement.prototype.at=function(t){this.ac(d.createTextNode(t));return this;};
+HTMLElement.prototype.si=function(i){this.innerHTML=i;return this;};
+HTMLElement.prototype.range=function(){return this.getBoundingClientRect();};
+HTMLElement.prototype.centerize=function(){
+	if(this!=d.body){
+		let prng=this.parentNode.range();
+		let orng=this.range();
+		this.sa('style','left:'+((prng.width-orng.width)/2)+'px;top:'+((prng.height-orng.height)/2)+'px;');
+	}
+	return this;
+};
+HTMLElement.prototype.cenPos=function(){
+	let rtv={},t=this.getBoundingClientRect();
+	rtv['x']=t.left+(t.width/2);
+	rtv['y']=t.top+(t.height/2);
+	return rtv;
+};
+HTMLElement.prototype.ae=function(e,f){
+	if(this.attachEvent) this.attachEvent("on"+e,f);
+	else if(this.addEventListener) this.addEventListener(e,f);
+	else console.log("not support");
+	return this;
+};
+q.scrollx = function scrollx(){return window.scrollX||d.documentElement.scrollLeft};
+q.scrolly = function scrolly(){return window.scrollY||d.documentElement.scrollTop};
+String.prototype.toNumber=function(_default){return isNaN(this)?_default:Number(this);};
+q.loop = function l(main,argvmain,itv){
+	let dt=isNaN(Number(itv))?updatePeriod:Number(itv);
+	setTimeout(function(){if(!main(argvmain))l(main,argvmain,dt);},dt);
+};
+q.cpArr = function cpArr(arr){let rtv=[];rtv.length=arr.length;for(let x=rtv.length;x--;)rtv[x]=arr[x];return rtv;};
+
+// parseArg
+q.search={"w":"3","h":"3"};
+let m=location.search.slice(1).match(/([^&]+)/g);
+if(m!=null) m.forEach(function(v){let s=v.indexOf("=");if(s!=-1)q.search[v.slice(0,s)]=v.slice(s+1);else q.search[v]=null;});
+q.w=q.search["w"].toNumber(3);
+q.h=q.search["h"].toNumber(3);
+if(q.w<0)q.w=0;
+if(q.h<0)q.h=0;
+q.sz=q.w*q.h;
+
+// adj css
+q.adjbdsz = function(w,h){
+	let newW=w>3?(w-3)*74+256:256;
+	let newH=h>3?(h-3)*74+256:256;
+	
+	let s="";
+	s+=".board{width:"+newW+"px;height:"+newH+"px;}";
+	s+=".board>div{width:"+newW+"px;}";
+	
+	let t=q.ge("css-dynamic-bdsz");
+	while(t.childNodes.length) t.removeChild(t.childNodes[0]);
+	t.at(s);
+};
+if(q.w!=3||q.h!=3) q.adjbdsz(q.w,q.h);
+
+})();
+</script>
+</head>
+<body>
+<div id="root">
+	<div class="input-panel">
+		<div>
+			<div>initial state</div>
+			<div id="bdi" class="board"></div>
+		</div>
+		<div>
+			<div>goal state</div>
+			<div id="bdg" class="board"></div>
+		</div>
+	</div>
+	<div id="solveit" class="btn">solve it</div>
+	<div id="o">here is the answer</div>
+</div>
+<script>
+"use strict";
+
+let ppp={};
+ppp.bfscache=[]; ppp.bfscache.length=q.sz;
+ppp.bdi=q.ge("bdi"),ppp.bdg=q.ge("bdg"),ppp.o=q.ge("o");
+// init
+for(let y=q.h;y--;){
+	let tmp=q.ce("div");
+	for(let x=q.w;x--;) tmp.ac(q.ce("div").ac(q.ce("input").sa("type","text")));
+	bdi.ac(tmp);
+}
+// goal
+for(let y=q.h;y--;){
+	let tmp=q.ce("div");
+	for(let x=q.w;x--;) tmp.ac(q.ce("div").ac( q.ce("input").sa("type","text").sa("value",(y!=0||x!=0)?(q.sz-(y*q.w+x)).toString():"") ));
+	bdg.ac(tmp);
+}
+ppp.getBd=function getBd(id){
+	let target=q.ge(id);
+	let rtv=[];
+	for(let y=0;y<q.h;y++) for(let x=0;x<q.w;x++) rtv.push(target.childNodes[y].childNodes[x].childNodes[0].value);
+	return rtv;
+};
+ppp.getInit=function getInit(){ return ppp.getBd("bdi"); };
+ppp.getGoal=function getGoal(){ return ppp.getBd("bdg"); };
+ppp.getOutput=function getOutput(){ return q.ge("o"); };
+ppp.setOutput=function setOutput(str){
+	let o=ppp.getOutput();
+	for(let x=o.childNodes.length;x!=0;x=o.childNodes.length) o.removeChild(o.childNodes[x-1]);
+	let msgs=str.match(/[^\n]+/g);
+	if(msgs!=null) for(let x=0;x<msgs.length;x++) o.ac(q.ce("div").at(msgs[x]));
+};
+ppp.errtype=function errtype(num){
+	let rtv="";
+	switch(num){
+	default:{
+		rtv="undescribed error";
+	}break;
+	case 0:{
+		rtv="no error";
+	}break;
+	case -1:{
+		rtv="input is not array-like";
+	}break;
+	case -2:{
+		rtv="input size (i.e. array.length) mismatch";
+	}break;
+	case -3:{
+		rtv="value of input out of range, not int( 1 to "+(q.sz-1)+" ) or blank";
+	}break;
+	case -4:{
+		rtv="value of input repeated";
+	}break;
+	}
+	return rtv;
+};
+ppp.bdRawErr=function bdRawErr(bd){
+	let errno=0;
+	// array like
+	errno=-1; // not array 
+	if(bd.length==undefined) return errno; 
+	// bd size == q.sz
+	errno=-2; // size mismatch 
+	if(bd.length!==q.sz) return errno; 
+	// is number 1~(q.sz-1) or blank
+	errno=-3; // not 1~(q.sz-1) nor blank 
+	let cnt=[]; for(let x=0;x<q.sz;x++) cnt[x]=0;
+	for(let x=q.sz;x--;)
+		if(isNaN(bd[x])) return errno; 
+		else{
+			let tmp=Number(bd[x]);
+			if((tmp==0&&bd[x].match(/[^\r\t\f\n ]/)!=null)||tmp>=q.sz||parseInt(tmp)!=tmp) return errno; 
+			else cnt[tmp]++;
+		}
+	// not repeated
+	errno=-4; // repeated 
+	for(let x=q.sz;x--;) if(cnt[x]!=1) return errno; 
+	// valid
+	return 0;
+}
+ppp.bdStr2num=function bdStr2num(bd){
+	let rtv=[]; rtv.length=bd.length;
+	for(let x=rtv.length;x--;) rtv[x]=bd[x].toNumber();
+	return rtv;
+}
+ppp.nearBd=function nearBd(numArr){
+	// rtv: a set of 1-step-nearby bd
+	let rtv=[],empty=numArr.indexOf(0);
+	let tmp=[];
+	
+	tmp=q.cpArr(numArr);
+	if(empty-q.w>=0){
+		tmp[empty]=tmp[empty-q.w]; tmp[empty-q.w]=0;
+		rtv.push({"move":"d","bd":tmp});
+	}
+	tmp=q.cpArr(numArr);
+	if(empty+q.w<q.sz){
+		tmp[empty]=tmp[empty+q.w]; tmp[empty+q.w]=0;
+		rtv.push({"move":"u","bd":tmp});
+	}
+	let m=empty%q.w;
+	tmp=q.cpArr(numArr);
+	if(m-1!=-1){
+		tmp[empty]=tmp[empty-1]; tmp[empty-1]=0;
+		rtv.push({"move":"r","bd":tmp});
+	}
+	tmp=q.cpArr(numArr);
+	if(m+1!=q.w){
+		tmp[empty]=tmp[empty+1]; tmp[empty+1]=0;
+		rtv.push({"move":"l","bd":tmp});
+	}
+	return rtv;
+}
+ppp.genMap=function genMap(numArr){
+	let rtv={}, rtv_r={}, zero=numArr.indexOf(0);
+	if(zero==-1){
+		for(let x=numArr.length;x--;) rtv[numArr[x]]=numArr[x];
+		return rtv;
+	}
+	for(let x=0,i=0;x<numArr.length;x++){
+		if(numArr[x]==0) continue;
+		i++;
+		rtv[numArr[x]]=i; rtv_r[i]=numArr[x];
+	}rtv[0]=rtv_r[0]=0;
+	rtv["reverse"]=rtv_r;
+	return rtv;
+};
+ppp.mapping=function mapping(numArr,mp){
+	let rtv=[];
+	for(let x=0;x<numArr.length;x++) rtv.push(mp[numArr[x]]);
+	return rtv;
+};
+ppp.mapping_reverse=function mapping(numArr,mp){ return ppp.mapping(numArr,mp["reverse"]); };
+ppp.factorial=function factorial(num){
+	let numint=parseInt(num);
+	if(numint!=num) return -1;
+	let rtv=1;
+	for(let x=numint;x>0;x--) rtv*=x;
+	return rtv;
+};
+ppp.arr2key=function arr2key(numArr){
+	let rtv=0;
+	let tbl=[]; tbl.length=numArr.length;
+	for(let x=numArr.length;x--;) tbl[x]=x;
+	for(let x=numArr.length;x--;){
+		let ord=tbl.indexOf(numArr[x]);
+		rtv+=ord*ppp.factorial(x);
+		tbl[ord]=tbl[tbl.length-1];
+		tbl.pop();
+		tbl.sort();
+	}
+	return rtv;
+};
+ppp.bfs=function bfs(s,f){
+	let rtv=[];
+	let mp=ppp.genMap(f),f_ori=f,s_ori=s,qc=f.indexOf(0);
+	f=ppp.mapping(f,mp); s=ppp.mapping(s,mp);
+	let f_key=ppp.arr2key(f),s_key=ppp.arr2key(s);
+	let mark=ppp.bfscache[qc]; if(mark==undefined) mark=[]; mark.length=ppp.factorial(f.length);
+	let added=[]; added.length=mark.length; added[f_key]=0;
+	let q=[];
+	q.push({"next":null,"curr":f,"move":null});
+	while(q.length){
+		let curr=q.shift();
+		let tmp2=ppp.arr2key(curr["curr"]);
+		if(mark[tmp2]!=undefined) continue;
+		mark[tmp2]={"next":curr["next"],"move":curr["move"]};
+		// if(tmp2==s_key) break;
+		let arr=ppp.nearBd(curr["curr"]);
+		for(let x=arr.length;x--;){
+			let tmp=arr[x];
+			let tmp2=ppp.arr2key(tmp["bd"]);
+			if(added[tmp2]!=undefined) continue;
+			added[tmp2]=0;
+			q.push({"next":curr["curr"],"curr":tmp["bd"],"move":tmp["move"]});
+		}
+	}
+	ppp.bfscache[qc]=mark;
+	let curr=mark[ppp.arr2key(s)];
+	if(curr==undefined) rtv=["unsolvable"];
+	else while(curr["next"]!=null){
+		rtv.push(curr["move"]);
+		curr=mark[ppp.arr2key(curr["next"])];
+	}
+	console.log(rtv);
+	return rtv;
+}
+ppp.printSol=function printSol(){
+	let iarr=ppp.getInit(),garr=ppp.getGoal();
+	let ierr=ppp.bdRawErr(iarr),gerr=ppp.bdRawErr(garr);
+	if(ierr!=0||gerr!=0){
+		// info err
+		ppp.setOutput("error - init state: "+ppp.errtype(ierr)+"\n"+"error - goal state: "+ppp.errtype(gerr));
+		return -1;
+	}
+	iarr=ppp.bdStr2num(iarr);
+	garr=ppp.bdStr2num(garr);
+	ppp.setOutput(ppp.bfs(iarr,garr).toString());
+	return 0;
+}
+q.ge("solveit").ae("click",ppp.printSol);
+
+</script>
+</body>
+</html>
