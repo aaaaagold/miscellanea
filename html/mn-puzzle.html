@@ -4,6 +4,9 @@
 <style id="css-default">
 /* default */
 body{background-color:#000000;position:absolute;}
+.hide{display:none;}
+.maxw{width:100%;}
+.maxh{height:100%;}
 .input-panel>div{display:inline-block;}
 .input-panel>div>div{color:#FFFFFF;}
 .board{padding-top:21px;position:relative;width:256px;height:256px;background-color:rgba(111,111,111,0.5);}
@@ -13,6 +16,8 @@ body{background-color:#000000;position:absolute;}
 .btn{background-color:rgba(111,111,0,0.5);color:#FFFFFF;border:1px solid yellow;text-align:center;}
 .btn:hover{background-color:rgba(155,155,0,0.5);}
 .btn:active{background-color:rgba(222,222,0,0.5);}
+.btnrow{width:100%;display:flex;flex-wrap:nowrap;}
+.btnrow>.btn{width:100%;}
 *{background-color:rgba(0,0,0,0);}
 div{color:#FFFFFF;}
 </style>
@@ -124,26 +129,45 @@ if(q.w!=3||q.h!=3) q.adjbdsz(q.w,q.h);
 		</div>
 	</div>
 	<div id="solveit" class="btn">solve it</div>
-	<div id="o">here is the answer</div>
+	<div id="o"> &gt; here is the answer &lt; </div>
+	<div> ---- ---- ---- ---- ---- ---- ---- ---- </div>
+	<div class="input-panel hide">
+		<div>
+			<div>animated solution</div>
+			<div class="btnrow">
+				<div id="animated-play" class="btn">play</div>
+				<div id="animated-restart" class="btn">restart</div>
+				<div id="animated-stop" class="btn">stop</div>
+			</div>
+			<div id="bds" class="board"></div>
+		</div>
+	<div>
 </div>
 <script>
 "use strict";
 
 let ppp={};
 ppp.bfscache=[]; ppp.bfscache.length=q.sz;
-ppp.bdi=q.ge("bdi"),ppp.bdg=q.ge("bdg"),ppp.o=q.ge("o");
+ppp.bdi=q.ge("bdi"),ppp.bdg=q.ge("bdg"),ppp.bds=q.ge("bds"),ppp.o=q.ge("o");
+ppp.bdInit=function bdInit(div){
+	for(let y=q.h;y--;){
+		let tmp=q.ce("div");
+		for(let x=q.w;x--;) tmp.ac(q.ce("div").ac(q.ce("input").sa("type","text")));
+		div.ac(tmp);
+	}
+};
+ppp.bdPut=function bdInit(target,arr){ for(let y=q.h;y--;) for(let x=q.w;x--;) target.childNodes[y].childNodes[x].childNodes[0].value=arr[y*q.w+x]; };
 // init
-for(let y=q.h;y--;){
-	let tmp=q.ce("div");
-	for(let x=q.w;x--;) tmp.ac(q.ce("div").ac(q.ce("input").sa("type","text")));
-	bdi.ac(tmp);
-}
+ppp.bdInit(bdi);
 // goal
-for(let y=q.h;y--;){
-	let tmp=q.ce("div");
-	for(let x=q.w;x--;) tmp.ac(q.ce("div").ac( q.ce("input").sa("type","text").sa("value",(y!=0||x!=0)?(q.sz-(y*q.w+x)).toString():"") ));
-	bdg.ac(tmp);
+ppp.bdInit(bdg);
+{
+	let arr=[]; for(let x=q.sz;x--;) arr[x]=(x+1==q.sz)?"":x+1;
+	ppp.bdPut(bdg,arr);
 }
+// sol
+ppp.bdInit(bds);
+
 ppp.getBd=function getBd(id){
 	let target=q.ge(id);
 	let rtv=[];
@@ -152,13 +176,16 @@ ppp.getBd=function getBd(id){
 };
 ppp.getInit=function getInit(){ return ppp.getBd("bdi"); };
 ppp.getGoal=function getGoal(){ return ppp.getBd("bdg"); };
-ppp.getOutput=function getOutput(){ return q.ge("o"); };
+ppp.getOutput=function getOutput(){ return q.ge("o").childNodes[0]; };
 ppp.setOutput=function setOutput(str){
-	let o=ppp.getOutput();
-	for(let x=o.childNodes.length;x!=0;x=o.childNodes.length) o.removeChild(o.childNodes[x-1]);
-	let msgs=str.match(/[^\n]+/g);
-	if(msgs!=null) for(let x=0;x<msgs.length;x++) o.ac(q.ce("div").at(msgs[x]));
+	str=str.toString();
+	let otxt=ppp.getOutput();
+	let msgs=str.match(/[^\n]+/g),putstr="";
+	if(msgs==null) putstr+="(no info)";
+	else for(let x=0;x<msgs.length;x++) putstr+=msgs[x];
+	otxt.textContent=putstr;
 };
+ppp.getSol=function getSol(){ return q.ge("bds"); };
 ppp.errtype=function errtype(num){
 	let rtv="";
 	switch(num){
@@ -260,6 +287,20 @@ ppp.mapping=function mapping(numArr,mp){
 	return rtv;
 };
 ppp.mapping_reverse=function mapping(numArr,mp){ return ppp.mapping(numArr,mp["reverse"]); };
+ppp.rfl_h=function rfl_h(arr){
+	let rtv=[]; rtv.length=arr.length;
+	for(let y=q.h;y--;) for(let x=q.w;x--;){
+		rtv[y*q.w+((q.w-1)-x)]=arr[y*q.w+x];
+	}
+	return rtv;
+};
+ppp.rfl_v=function rfl_v(arr){
+	let rtv=[]; rtv.length=arr.length;
+	for(let y=q.h;y--;) for(let x=q.w;x--;){
+		rtv[((q.h-1)-y)*q.w+x]=arr[y*q.w+x];
+	}
+	return rtv;
+};
 ppp.factorial=function factorial(num){
 	let numint=parseInt(num);
 	if(numint!=num) return -1;
@@ -267,53 +308,98 @@ ppp.factorial=function factorial(num){
 	for(let x=numint;x>0;x--) rtv*=x;
 	return rtv;
 };
+ppp.factorialTable=function factorialTable(length){
+	let rtv=[1];
+	for(let x=1;x!=length;x++) rtv[x]=rtv[x-1]*x;
+	return rtv;
+};
 ppp.arr2key=function arr2key(numArr){
 	let rtv=0;
 	let tbl=[]; tbl.length=numArr.length;
+	let facTbl=ppp.factorialTable(numArr.length);
 	for(let x=numArr.length;x--;) tbl[x]=x;
 	for(let x=numArr.length;x--;){
 		let ord=tbl.indexOf(numArr[x]);
-		rtv+=ord*ppp.factorial(x);
+		rtv+=ord*facTbl[x];
 		tbl[ord]=tbl[tbl.length-1];
 		tbl.pop();
 		tbl.sort();
 	}
 	return rtv;
 };
-ppp.bfs=function bfs(s,f){
+ppp.key2arr=function key2arr(key, arrTemplate){
+	let arr=[]; arr.length=arrTemplate.length; for(let x=arr.length;x--;) arr[x]=arrTemplate[x];
+	let rtv=[]; rtv.length=arr.length;
+	arrTemplate.sort();
+	let facTbl=ppp.factorialTable(arr.length);
+	for(let x=arr.length;x--;){
+		let ch=parseInt(key/facTbl[x]);
+		key%=facTbl[x];
+		arr.sort(); rtv[x]=arr[ch]; arr[ch]=arr[0]; arr.shift();
+	}
+	return rtv;
+};
+ppp.buildPath=function buildPath(qc,s_key,rfl_info_map={}){
 	let rtv=[];
-	let mp=ppp.genMap(f),f_ori=f,s_ori=s,qc=f.indexOf(0);
-	f=ppp.mapping(f,mp); s=ppp.mapping(s,mp);
+	console.log(rfl_info_map);
+	let mark=ppp.bfscache[qc];
+	let curr=mark[s_key];
+	if(curr==undefined) rtv=["unsolvable"];
+	else while(curr["next"]!=null){
+		let m=curr["move"];
+		let mm=rfl_info_map[m];
+		rtv.push(mm==undefined?m:mm);
+		curr=mark[curr["next"]];
+	}
+	console.log(rtv);
+	return rtv;
+};
+ppp.bfs=function bfs(s,f){
+	let f_ori=f,s_ori=s;
+	// transform
+	let rflFlag_h=0,rflFlag_v=0,qc=f.length,rfl_info_map={};
+	for(let v=2;v--;){
+		for(let h=2;h--;){
+			let arr=f_ori;
+			if(h) arr=ppp.rfl_h(arr);
+			if(v) arr=ppp.rfl_v(arr);
+			let currqc=arr.indexOf(0);
+			if(currqc<qc){
+				qc=currqc;
+				rflFlag_h=h;
+				rflFlag_v=v;
+				f=arr;
+			}
+		}
+	}
+	if(rflFlag_h){ s=ppp.rfl_h(s); rfl_info_map["r"]="l"; rfl_info_map["l"]="r"; }
+	if(rflFlag_v){ s=ppp.rfl_v(s); rfl_info_map["d"]="u"; rfl_info_map["u"]="d"; }
+	let mp=ppp.genMap(f); f=ppp.mapping(f,mp); s=ppp.mapping(s,mp);
+	// transform END
+	
 	let f_key=ppp.arr2key(f),s_key=ppp.arr2key(s);
 	let mark=ppp.bfscache[qc]; if(mark==undefined) mark=[]; mark.length=ppp.factorial(f.length);
 	let added=[]; added.length=mark.length; added[f_key]=0;
-	let q=[];
-	q.push({"next":null,"curr":f,"move":null});
-	while(q.length){
-		let curr=q.shift();
-		let tmp2=ppp.arr2key(curr["curr"]);
-		if(mark[tmp2]!=undefined) continue;
-		mark[tmp2]={"next":curr["next"],"move":curr["move"]};
-		// if(tmp2==s_key) break;
-		let arr=ppp.nearBd(curr["curr"]);
+	let queue=[];
+	queue.push({"next":null,"curr":f_key,"move":null});
+	while(queue.length){
+		let curr=queue.shift();
+		let currKey=curr["curr"];
+		if(mark[currKey]!=undefined) continue;
+		mark[currKey]={"next":curr["next"],"move":curr["move"]};
+		// if(tcurrKey==s_key) break;
+		let arr=ppp.nearBd(ppp.key2arr(curr["curr"],f));
 		for(let x=arr.length;x--;){
 			let tmp=arr[x];
 			let tmp2=ppp.arr2key(tmp["bd"]);
 			if(added[tmp2]!=undefined) continue;
 			added[tmp2]=0;
-			q.push({"next":curr["curr"],"curr":tmp["bd"],"move":tmp["move"]});
+			queue.push({"next":currKey,"curr":ppp.arr2key(tmp["bd"]),"move":tmp["move"]});
 		}
 	}
 	ppp.bfscache[qc]=mark;
-	let curr=mark[ppp.arr2key(s)];
-	if(curr==undefined) rtv=["unsolvable"];
-	else while(curr["next"]!=null){
-		rtv.push(curr["move"]);
-		curr=mark[ppp.arr2key(curr["next"])];
-	}
-	console.log(rtv);
-	return rtv;
-}
+	return ppp.buildPath(qc,s_key,rfl_info_map);
+};
 ppp.printSol=function printSol(){
 	let iarr=ppp.getInit(),garr=ppp.getGoal();
 	let ierr=ppp.bdRawErr(iarr),gerr=ppp.bdRawErr(garr);
@@ -324,9 +410,10 @@ ppp.printSol=function printSol(){
 	}
 	iarr=ppp.bdStr2num(iarr);
 	garr=ppp.bdStr2num(garr);
-	ppp.setOutput(ppp.bfs(iarr,garr).toString());
+	let s=q.sz<11?ppp.bfs(iarr,garr).toString():":(";
+	ppp.setOutput(s.length?s:"(no moves)");
 	return 0;
-}
+};
 q.ge("solveit").ae("click",ppp.printSol);
 
 </script>
