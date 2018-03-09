@@ -131,13 +131,13 @@ if(q.w!=3||q.h!=3) q.adjbdsz(q.w,q.h);
 	<div id="solveit" class="btn">solve it</div>
 	<div id="o"> &gt; here is the answer &lt; </div>
 	<div> ---- ---- ---- ---- ---- ---- ---- ---- </div>
-	<div class="input-panel hide">
+	<div class="input-panel">
 		<div>
 			<div>animated solution</div>
 			<div class="btnrow">
+				<div id="animated-stop" class="btn">stop</div>
 				<div id="animated-play" class="btn">play</div>
 				<div id="animated-restart" class="btn">restart</div>
-				<div id="animated-stop" class="btn">stop</div>
 			</div>
 			<div id="bds" class="board"></div>
 		</div>
@@ -147,6 +147,7 @@ if(q.w!=3||q.h!=3) q.adjbdsz(q.w,q.h);
 "use strict";
 
 let ppp={};
+ppp.animated={}; ppp.animated["state"]=[]; ppp.animated["sit"]=0; ppp.animated["itvl"]=undefined;
 ppp.bfscache=[]; ppp.bfscache.length=q.sz;
 ppp.bdi=q.ge("bdi"),ppp.bdg=q.ge("bdg"),ppp.bds=q.ge("bds"),ppp.o=q.ge("o");
 ppp.bdInit=function bdInit(div){
@@ -339,16 +340,28 @@ ppp.key2arr=function key2arr(key, arrTemplate){
 	}
 	return rtv;
 };
-ppp.buildPath=function buildPath(qc,s_key,rfl_info_map={}){
-	let rtv=[];
+ppp.buildPath=function buildPath(qc,s,rfl_info_map={}){
+	let rtv={}; rtv["move"]=[]; rtv["state"]=[];
 	console.log(rfl_info_map);
 	let mark=ppp.bfscache[qc];
-	let curr=mark[s_key];
-	if(curr==undefined) rtv=["unsolvable"];
+	let curr=mark[ppp.arr2key(s)];
+	{
+		let arr=ppp.mapping_reverse(s,rfl_info_map["m"]);
+		if(rfl_info_map["h"]==1) arr=ppp.rfl_h(arr);
+		if(rfl_info_map["v"]==1) arr=ppp.rfl_v(arr);
+		let i=arr.indexOf(0); arr[i]="";
+		rtv["state"].push(arr);
+	}
+	if(curr==undefined) rtv["move"]="unsolvable";
 	else while(curr["next"]!=null){
 		let m=curr["move"];
 		let mm=rfl_info_map[m];
-		rtv.push(mm==undefined?m:mm);
+		rtv["move"].push(mm==undefined?m:mm);
+		let arr=ppp.mapping_reverse(ppp.key2arr(curr["next"],s),rfl_info_map["m"]);
+		if(rfl_info_map["h"]==1) arr=ppp.rfl_h(arr);
+		if(rfl_info_map["v"]==1) arr=ppp.rfl_v(arr);
+		let i=arr.indexOf(0); arr[i]="";
+		rtv["state"].push(arr);
 		curr=mark[curr["next"]];
 	}
 	console.log(rtv);
@@ -357,7 +370,7 @@ ppp.buildPath=function buildPath(qc,s_key,rfl_info_map={}){
 ppp.bfs=function bfs(s,f){
 	let f_ori=f,s_ori=s;
 	// transform
-	let rflFlag_h=0,rflFlag_v=0,qc=f.length,rfl_info_map={};
+	let rflFlag_h=0,rflFlag_v=0,qc=f.length,rfl_info_map={"info":{}};
 	for(let v=2;v--;){
 		for(let h=2;h--;){
 			let arr=f_ori;
@@ -372,9 +385,10 @@ ppp.bfs=function bfs(s,f){
 			}
 		}
 	}
-	if(rflFlag_h){ s=ppp.rfl_h(s); rfl_info_map["r"]="l"; rfl_info_map["l"]="r"; }
-	if(rflFlag_v){ s=ppp.rfl_v(s); rfl_info_map["d"]="u"; rfl_info_map["u"]="d"; }
+	if(rflFlag_h){ s=ppp.rfl_h(s); rfl_info_map["h"]=1; rfl_info_map["r"]="l"; rfl_info_map["l"]="r"; }
+	if(rflFlag_v){ s=ppp.rfl_v(s); rfl_info_map["v"]=1; rfl_info_map["d"]="u"; rfl_info_map["u"]="d"; }
 	let mp=ppp.genMap(f); f=ppp.mapping(f,mp); s=ppp.mapping(s,mp);
+	rfl_info_map["m"]=mp;
 	// transform END
 	
 	let f_key=ppp.arr2key(f),s_key=ppp.arr2key(s);
@@ -398,9 +412,35 @@ ppp.bfs=function bfs(s,f){
 		}
 	}
 	ppp.bfscache[qc]=mark;
-	return ppp.buildPath(qc,s_key,rfl_info_map);
+	return ppp.buildPath(qc,s,rfl_info_map);
+};
+ppp.animated["stop"]=function animated_stop(){
+	let aobj=ppp.animated;
+	if(aobj["itvl"]!=undefined){
+		clearInterval(aobj["itvl"]);
+		aobj["itvl"]=undefined;
+	}
+};
+ppp.animated["play1"]=function animated_play1(){ 
+	let aobj=ppp.animated;
+	if(aobj["sit"]==aobj["state"].length) aobj["sit"]=0;
+	ppp.bdPut(ppp.getSol(),aobj["state"][aobj["sit"]++]);
+};
+ppp.animated["play"]=function animated_play(){ 
+	let aobj=ppp.animated;
+	aobj["play1"]();
+	aobj["itvl"]=setInterval(aobj["play1"],999);
+};
+ppp.animated["restart"]=function animated_restart(){ 
+	let aobj=ppp.animated;
+	aobj["stop"]();
+	aobj["sit"]=0;
+	ppp.animated["play"]();
 };
 ppp.printSol=function printSol(){
+	let aobj=ppp.animated;
+	aobj["stop"]();
+	aobj["state"]=[];
 	let iarr=ppp.getInit(),garr=ppp.getGoal();
 	let ierr=ppp.bdRawErr(iarr),gerr=ppp.bdRawErr(garr);
 	if(ierr!=0||gerr!=0){
@@ -410,11 +450,21 @@ ppp.printSol=function printSol(){
 	}
 	iarr=ppp.bdStr2num(iarr);
 	garr=ppp.bdStr2num(garr);
-	let s=q.sz<11?ppp.bfs(iarr,garr).toString():":(";
+	let res=ppp.bfs(iarr,garr);
+	
+	let s=q.sz<11?res["move"].toString():":(";
 	ppp.setOutput(s.length?s:"(no moves)");
+	
+	aobj["state"].length=res["state"].length;
+	for(let x=aobj["state"].length;x--;) aobj["state"][x]=res["state"][x];
+	aobj["restart"]();
+	
 	return 0;
 };
 q.ge("solveit").ae("click",ppp.printSol);
+q.ge("animated-stop").ae("click",ppp.animated["stop"]);
+q.ge("animated-play").ae("click",ppp.animated["play"]);
+q.ge("animated-restart").ae("click",ppp.animated["restart"]);
 
 </script>
 </body>
