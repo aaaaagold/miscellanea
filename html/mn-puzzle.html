@@ -429,6 +429,7 @@ ppp.animated["play1"]=function animated_play1(){
 ppp.animated["play"]=function animated_play(){ 
 	let aobj=ppp.animated;
 	aobj["play1"]();
+	aobj["stop"]();
 	aobj["itvl"]=setInterval(aobj["play1"],999);
 };
 ppp.animated["restart"]=function animated_restart(){ 
