@@ -343,6 +343,7 @@ class exp
 			else if(t.type==2){ rtv.push_back(t); stat=1; }
 		}	break;
 		}}
+		if(stat!=2) rtv.resize(0);
 		return rtv;
 	}
 	static int tk3(const vector<token> &v, unsigned strt=0, unsigned opp=0)
