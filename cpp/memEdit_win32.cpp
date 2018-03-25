@@ -269,17 +269,156 @@ public:
 	}
 };
 
+class exp
+{
+	class token
+	{
+	public:
+		int type; // 0:undef  1:num  2:op
+		int val;
+		token(){}
+		token(int t,int v){init(t,v);}
+		token &init(int t,int v)
+		{
+			type=t;val=v;
+			return *this;
+		}
+	};
+	static bool isDigit(int c){ return c<='9' && '0'<=c; }
+	static vector<token> tk1(const string &s)
+	{
+		// 14351 526-51() =25 -=q4 [][] \5233
+		vector<token> rtv;
+		string tmp="";
+		int stat=0; // 0: none  1: num
+		const char *ptr=s.c_str();
+		for(unsigned char c=*ptr;;c=*(++ptr))
+		{
+			if(isDigit(c)) stat=1;
+			else if(stat==1)
+			{
+				int v; sscanf(tmp.c_str(),"%d",&v);
+				rtv.push_back(token(1,v)); tmp="";
+				stat=0;
+			}
+			if(c==0) break;
+			if(c<=32) continue;
+			switch(stat)
+			{
+			case 0:
+			{
+				rtv.push_back(token(2,c));
+			}break;
+			case 1:
+			{
+				tmp+=c;
+			}break;
+			}
+		}
+		return rtv;
+	}
+	static vector<token> tk2(vector<token> &&tkv)
+	{
+		vector<token> &v=tkv; v.push_back(token(0,0));
+		vector<token> rtv;
+		int coef=1;
+		unsigned stat=1; // 1:get num  2:get op
+		for(unsigned x=0;v[x].type!=0;x++){ const auto &t=v[x]; switch(stat) {
+		case 1:
+		{
+			if(t.type==1){ rtv.push_back(token(1,coef*t.val)); coef=1; stat=2; }
+			else if(t.type==2) switch(t.val){
+			case '-':
+				coef=-coef;
+			case '+':
+				break;
+			case '/':
+			case '*':
+				rtv.resize(0); return rtv; 
+			}
+		}	break;
+		case 2:
+		{
+			if(t.type==1){ rtv.resize(0); return rtv; }
+			else if(t.type==2){ rtv.push_back(t); stat=1; }
+		}	break;
+		}}
+		return rtv;
+	}
+	static int tk3(const vector<token> &v, unsigned strt=0, unsigned opp=0)
+	{
+		vector<int> n;
+		vector<int> o;
+		for(unsigned x=0,xs=v.size();x<xs;x++)
+		{
+			if((x&1)==0){ n.push_back(v[x].val); continue; }
+			switch(v[x].val)
+			{
+			case '-':
+			case '+':
+				 o.push_back(v[x].val);
+			break;
+			case '/':
+				n.back()/=v[++x].val;
+			break;
+			case '*':
+				n.back()*=v[++x].val;
+			break;
+			}
+		}
+		for(unsigned x=0,xs=o.size();x<xs;x++)
+		{
+			switch(o[x])
+			{
+			case '-': n[0]-=n[x+1]; break;
+			case '+': n[0]+=n[x+1]; break;
+			}
+		}
+		return n[0];
+	}
+public:
+	static vector<int> parseInt(stringstream &ss)
+	{
+		string s,tmp; while(ss>>tmp) s+=tmp;
+		vector<int> rtv;
+		const auto &res=tk2(tk1(s));
+		if(res.size()!=0) rtv.push_back(tk3(res));
+		return rtv;
+	}
+};
+
 class hack
 {
 	attacher hdl;
 	vector<vector<pv<int> > > ptrv_prev;
 	vector<pv<int> > ptrv;
 	bool attach_qv;  // 0: quiet  1: verbose
-	void attach_inerr(const string &s)const
+	static void attach_inerr(const string &s)
 	{
 		printf("input error:%s\n",s.c_str());
 	}
-	vector<pv<int> > attach_parseAddrList(stringstream &ss)const // return [(NULL,0)] on error
+	/* /
+	static vector<int> parseExp_int_simple(const string &lhs, const string &op, const string &rhs)
+	{
+		vector<int> rtv(2);
+		if(sscanf(lhs.c_str(),"%d",&rtv[0])!=1){ attach_inerr(lhs); rtv.resize(0); }
+		else if(op!="")
+		{
+			if(op!="*" && op!="+" && op!="-" && op!="/"){ attach_inerr(op); rtv.resize(0); }
+			else if(sscanf(rhs.c_str(),"%d",&rtv[1])!=1){ attach_inerr(rhs); rtv.resize(0); }
+			else switch(op[0])
+			{
+			default: break;
+			case '*': rtv[0]*=rtv[1]; break;
+			case '+': rtv[0]+=rtv[1]; break;
+			case '-': rtv[0]-=rtv[1]; break;
+			case '/': rtv[0]/=rtv[1]; break;
+			}
+		}
+		return rtv;
+	}
+	// */
+	static vector<pv<int> > attach_parseAddrList(stringstream &ss) // return [(NULL,0)] on error
 	{
 		vector<pv<int> > rtv;
 		string s;
@@ -344,7 +483,7 @@ public:
 				printf("  %-7s\n",                           "update");
 				printf("    %-7s\n","update cached (address,value) pair from 'ns' or 'rs'");
 				printf("  %-7s  %-7s\n",                     "updateview",addrList);
-				printf("    %-7s\n","combined cmd of update and view");
+				printf("    %-7s\n","combined cmd of update and view, 'uv' in short");
 				printf("    %-7s\n","default: current stack");
 				printf("  %-7s  %-7s  %-7s\n",               "ns","TYPE","VALUE");
 				printf("    %-7s\n","new search");
@@ -352,8 +491,8 @@ public:
 				printf("  %-7s  %-7s  %-7s\n",               "rs","TYPE","VALUE");
 				printf("    %-7s\n","re-search (from last result)");
 				printf("    %-7s\n","write result to current stack");
-				printf("  %-7s  %-7s  %-7s  %-7s\n",         "e","TYPE","LOC","VALUE");
-				printf("  %-7s  %-7s  %-7s  %-7s  %-7s\n",   "e","TYPE","LOC","delta","VALUE");
+				printf("  %-7s  %-7s  %-7s  %-7s  %-7s\n",   "e","TYPE","LOC","METHOD","VALUE");
+				printf("    %-7s\n","edit memory");
 				printf("  %-7s  %-7s\n",                     "a",addrList);
 				printf("    %-7s\n","add ADDRs to current stack");
 				printf("  %-7s\n",                           "clear");
@@ -378,19 +517,22 @@ public:
 				printf("  %-7s can be:\n","LOC");
 				printf("    %-7s\n","ADDR");
 				printf("    %-7s\n","ALL");
+				printf("  %-7s can be:\n","METHOD");
+				printf("    %-7s\n","a(bsolute)");
+				printf("    %-7s\n","d(elta)");
 			}else if(act=="quiet"){
 				printf("switch to quiet mode\n");
 				attach_qv=0;
 			}else if(act=="verbose"){
 				printf("switch to verbose mode\n");
 				attach_qv=1;
-			}else if(act=="view"){
+			}else if(act=="v" || act=="view"){
 				if(attach_qv) printf("view (ptrs,cached value)s\n");
 				attach_view(ss);
-			}else if(act=="update"){
+			}else if(act=="u" || act=="update"){
 				if(attach_qv) printf("update cached values\n");
 				ptrv=hdl.search_int_re(ptrv,0,1);
-			}else if(act=="updateview"){
+			}else if(act=="uv" || act=="updateview"){
 				if(attach_qv) printf("update and view\n");
 				ptrv=hdl.search_int_re(ptrv,0,1);
 				attach_view(ss);
@@ -427,25 +569,27 @@ public:
 				string type; ss>>type;
 				if(type=="int")
 				{
-					string loc,val; ss>>loc>>val;
+					string loc,method,exp1,op,exp2; ss>>loc>>method;
 					int *ptr,tmp;
-					bool padding=0;
-					if(val=="delta")
+					bool padding=0,err=0;
+					if(method=="a" || method=="absolute") padding=0;
+					else if(method=="d" || method=="delta") padding=1;
+					else err=1;
+					vector<int> val=exp::parseInt(ss);
+					if(err) attach_inerr(loc+" "+method);
+					else if(prefixEq("0x",loc) && sscanf(loc.c_str(),"0x%p",&ptr)==1 && val.size()!=0)
 					{
-						padding=1;
-						ss>>val;
-					}
-					if(prefixEq("0x",loc) && sscanf(loc.c_str(),"0x%p",&ptr)==1 && sscanf(val.c_str(),"%d",&tmp)==1)
-					{
+						tmp=val[0];
 						if(padding) tmp+=hdl.search_int_re(vector<pv<int> >(1,pv<int>(ptr,0)),0,1)[0].second;
 						hdl.edit_int(ptr,tmp);
 					}
-					else if(loc=="ALL" && sscanf(val.c_str(),"%d",&tmp)==1)
+					else if((loc=="A" || loc=="ALL") && val.size()!=0)
 					{
+						tmp=val[0];
 						if(padding) ptrv=hdl.search_int_re(ptrv,0,1);
 						for(size_t x=ptrv.size();x--;) hdl.edit_int(ptrv[x].first,padding?ptrv[x].second+tmp:tmp);
 					}
-					else attach_inerr(loc+" "+val);
+					else attach_inerr(string()+"loc err  or  exp err: "+ss.str());
 				}else printf("unknown %s type: %s\n","edit",type.c_str());
 			}else if(act=="a"){
 				if(attach_qv) printf("add addr\n");
