@@ -34,12 +34,12 @@ inline void debug(const string &s)
 
 void usage()
 {
-	printf("usage:  arg0  [ -v[options] | -a pid ]\n");
+	printf("usage:  arg0  [ -l[options] | -a pid ]\n");
 	printf("\t a option can be:\n");
 	printf("\t\t u\t list unknown name processes\n");
 	printf("\t\t n\t sorted by name\n");
 	printf("\t\t p\t sorted by pid\n");
-	printf("\t\t * You cannot use 'n', 'p' at same time.  The last will be considered. \n");
+	printf("\t\t * You cannot use 'n', 'p' at same time.  The last you put will be considered. \n");
 }
 
 bool prefixEq(const string &prefixStr,const string &fullStr){
@@ -119,7 +119,7 @@ bool listProcesses(bool unknown=0,int sortedLv=0) // return true on error
 	}break;
 	}
 	for(auto it=pList.begin();it!=pList.end();++it)
-		printf("PID: %6I64u  %s\n" ,(*it).first ,(*it).second.c_str() );
+		printf("PID: %6llu  %s\n" ,(*it).first ,(*it).second.c_str() );
 	return 0;
 }
 
@@ -211,7 +211,7 @@ public:
 				}
 			}
 		}
-		printf("result count: %I64u\n",(ull)(rtv.size()));
+		printf("result count: %llu\n",(ull)(rtv.size()));
 		return rtv;
 	}
 	vector<pv<int> > search_int(const int val)const
@@ -256,7 +256,7 @@ public:
 				}
 			}
 		}
-		printf("result count: %I64u\n",(ull)(rtv.size()));
+		printf("result count: %llu\n",(ull)(rtv.size()));
 		return rtv;
 	}
 	ull getPid()const
@@ -492,7 +492,7 @@ public:
 				printf("  %-7s  %-7s  %-7s\n",               "rs","TYPE","VALUE");
 				printf("    %-7s\n","re-search (from last result)");
 				printf("    %-7s\n","write result to current stack");
-				printf("  %-7s  %-7s  %-7s  %-7s  %-7s\n",   "e","TYPE","LOC","METHOD","VALUE");
+				printf("  %-7s  %-7s  %-7s  %-7s  %-7s\n",   "e","TYPE","LOC","METHOD","expression_without_quote");
 				printf("    %-7s\n","edit memory");
 				printf("  %-7s  %-7s\n",                     "a",addrList);
 				printf("    %-7s\n","add ADDRs to current stack");
@@ -656,10 +656,10 @@ int main(const int argc,const char *argv[])
 		{
 			ull pid;
 			hack h;
-			if(argc>2 && sscanf(argv[2],"%I64u",&pid)==1) h.attach(pid);
+			if(argc>2 && sscanf(argv[2],"%llu",&pid)==1) h.attach(pid);
 			else printUsage=1;
 		}break;
-		case 'v':
+		case 'l':
 		{
 			bool unknown=0;
 			int sortedLv=0;
