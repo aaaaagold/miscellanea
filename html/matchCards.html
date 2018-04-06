@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body{margin:0px;border:0px;padding:0px;position:absolute;width:100%;height:100%;background-color:#000000;color:#FFFFFF;}
+.cen{text-align:center;}
+.__{white-space:nowrap;}
+._{display:inline;}
+.maxwh{position:absolute;width:100%;height:100%;}
+.pannel{background-color:rgba(111,111,111,0.5);}
+.card{position:relative;margin:11px;border:1px solid white;display:inline;width:66px;height:99px;display:inline-block;background-color:rgba(111,111,11,0.5);}
+.card>div{position:absolute;}
+.cardrow{white-space:nowrap;display:block;}
+.cards{}
+</style>
+<script>
+"use strict";
+var NULL=null;
+var d=document;
+function numDelta(str,delta){return str.replace(/\-?[0-9]*\.?[0-9]*/g,function(m){return m!=""?Number(m)+delta:""});}
+Array.prototype.back=function(){return this.length==0?undefined:this[this.length-1];};
+function ge(id){return d.getElementById(id);}
+function ce(tag){return d.createElement(tag);}
+function ct(txt){return d.createTextNode(txt);}
+HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
+HTMLElement.prototype.cc=function(){let arr=this.childNodes;while(arr.length)this.removeChild(arr[arr.length-1]); return this;}
+HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
+HTMLElement.prototype.at=function(t){this.ac(d.createTextNode(t));return this;};
+HTMLElement.prototype.si=function(i){this.innerHTML=i;return this;};
+HTMLElement.prototype.range=function(){return this.getBoundingClientRect();};
+HTMLElement.prototype.cenPos=function(){
+	let rtv={},t=this.getBoundingClientRect();
+	rtv['x']=t.left+(t.width/2);
+	rtv['y']=t.top+(t.height/2);
+	return rtv;
+};
+HTMLElement.prototype.centerize=function(){
+	if(this==d.body) return this;
+	let prng=this.parentNode.range();
+	let orng=this.range();
+	this.sa('style','left:'+((prng.width-orng.width)/2)+'px;top:'+((prng.height-orng.height)/2)+'px;');
+	return this;
+};
+HTMLElement.prototype.ae=function(e,f){
+	if(this.attachEvent) this.attachEvent("on"+e,f);
+	else if(this.addEventListener) this.addEventListener(e,f);
+	else console.log("not support");
+	return this;
+};
+function scrollx(){return window.scrollX||document.documentElement.scrollLeft}
+function scrolly(){return window.scrollY||document.documentElement.scrollTop}
+let updatePeriod=133;
+let loop=function l(main,argvmain,itv,cb,argvcb){
+	let dt=isNaN(Number(itv))?updatePeriod:Number(itv);
+	setTimeout(function(){if(!main(argvmain))l(main,argvmain,dt);else if(cb)cb(argvcb);},dt);
+};
+</script>
+</head>
+<body >
+<div id="root" class="cen">
+<div class="pannel"></div>
+<div id="cards"></div>
+</div>
+<script>
+"use strict";
+let rand=Math.random;
+let distinctRand=function rnd(){let rtv=0; do rtv=rand(); while(rnd.prev==rtv); return rnd.prev=rtv;};
+
+let gameInit=function init(){
+let game={};
+
+if(init.reset==undefined) init.reset=function(){
+	if(this.cards==undefined){ console.log("please call init first"); return; }
+	this.remainCardsCnt=cards.length;
+	this.lastTurn=-1;
+	this.toBeTurnBack=[];
+	this.prevClick=-1;
+	this.prevClick1=-1;
+	this.prevClick2=-1;
+	let parr=[]; parr.length=this.cardpairs<<1; for(let x=0,xs=parr.length;x<xs;x++) parr[x]=x>>1;
+	parr.length=this.cards.length;
+	for(let x=parr.length;x--;){
+		let ch=parseInt(rand()*parr.length);
+		let num=parr[ch]; parr[ch]=parr.back(); parr.pop();
+		this.cards[x].num=num;
+		this.cards[x].cc().ac(ce("div").at(num)).ac(ce("div").sa("class","maxwh")).childNodes[0].centerize();
+		this.cards[x].style.opacity=1;
+		this.cards[x].childNodes[0].style.opacity=0;
+		this.cards[x].face=0;
+		this.cards[x].disable=0;
+		this.cards[x].animating=0;
+	}
+};
+game.reset=init.reset;
+
+if(init.pairing==undefined) init.pairing=function(c1,c2){
+	if(c1==undefined || c2==undefined || c1==-1 || c2==-1) return;
+	let c=game.cards;
+	if(c[c1].face!=0 && c[c2].face!=0 && c[c1].num==c[c2].num){
+		c[c1].disappear();
+		c[c2].disappear();
+	}else{
+		let g=c[c2].game;
+		console.log(c1,c2);
+		if(g.lastTurn!=c1 && g.lastTurn!=c2){
+			c[c1].turn();
+			c[c2].turn();
+		}else g.toBeTurnBack=[c1,c2];
+	}
+};
+game.pairing=init.pairing;
+if(init.disappearing==undefined) init.disappearing=function(arg){
+	// used by disappear
+	arg[1]-=1;
+	arg[0].style.opacity=arg[1]*1.0/arg[0].disappearFrameItMax;
+	return arg[1]==0;
+};
+game.disappearing=init.disappearing;
+if(init.disappear==undefined) init.disappear=function(){
+	// attach on card
+	this.disable=1;
+	loop(game.disappearing,[this,this.disappearFrameItMax]);
+};
+game.disappear=init.disappear;
+if(init.turning==undefined) init.turning=function(arg){
+	// used by turnCard
+	arg[1]-=1;
+	let oriFace=arg[2];
+	let scalex=Math.cos(3*Math.PI*arg[1]/arg[0].turnFrameItMax);
+	let opacity=oriFace^((scalex<0)+0)^1;
+	arg[0].style.transform="scale("+((1-2*oriFace)*scalex)+",1)";
+	arg[0].childNodes[0].style.opacity=opacity;
+	let rtv=arg[1]<=0;
+	if(rtv){ arg[0].face=(oriFace+0)^1; game.pairing(arg[3],arg[4]); arg[0].animating=0; }
+	return rtv;
+};
+game.turning=init.turning;
+if(init.turnCard==undefined) init.turnCard=function(c1,c2){
+	// attach on card
+	this.animating=1;
+	loop(game.turning,[this,this.turnFrameItMax,this.face,c1,c2]);
+};
+game.turnCard=init.turnCard;
+if(init.clickEvt==undefined) init.clickEvt=function(){
+	// attach to click event on card
+	if(this.disable!=0 || this.face!=0 || this.animating!=0 ) return;
+	let prevClick=this.game.prevClick;
+	if(this.game.prevClick==this.it) return;
+	;
+	{
+		let arr=this.game.toBeTurnBack;
+		for(let x=0;x<arr.length;x++){ let tmp=this.game.cards[arr[x]]; if(tmp) tmp.turn(); }
+	}
+	console.log(this.game.toBeTurnBack);
+	this.game.toBeTurnBack.length=0;
+	this.game.prevClick=prevClick==-1?this.it:-1;
+	this.game.lastTurn=this.it;
+	this.turn(prevClick,this.it);
+};
+game.clickEvt=init.clickEvt;
+
+if(init.init==undefined) init.init=function(divid){
+	if(divid==undefined) divid="cards";
+	let divcards=ge(divid); divcards.cc();
+	let w=4;
+	let h=4;
+	let pairCntEachColor=1;
+	w<<=1;
+	let cards=[];
+	let cardpairs=parseInt(w*h/(pairCntEachColor<<1));
+	let parr=[]; parr.length=cardpairs<<1; for(let x=0,xs=parr.length;x<xs;x++) parr[x]=x>>1;
+	parr.length=w*h;
+	for(let y=h;y--;){
+		let tmp=ce("div").sa("class","cardrow");
+		for(let x=w;x--;){
+			let ch=parseInt(rand()*parr.length);
+			let card=ce("div").sa("class","card");
+			card.it=cards.length;
+			card.game=this;
+			card.turnFrameItMax=23;
+			card.disappearFrameItMax=23;
+			card.turn=game.turnCard;
+			card.disappear=game.disappear;
+			card.ae("click",game.clickEvt);
+			tmp.ac(card);
+			cards.push(card);
+		}
+		divcards.ac(tmp);
+	}
+	this.divcards=divcards;
+	this.w=w;
+	this.h=h;
+	this.pairCntEachColor=pairCntEachColor;
+	this.cards=cards;
+	this.cardpairs=cardpairs;
+	this.reset();
+};
+game.init=init.init;
+
+return game;
+};
+
+updatePeriod=34;
+
+let game0=new gameInit();
+game0.init();
+</script>
+</body>
+</html>
