@@ -17,6 +17,7 @@ body{margin:0px;border:0px;padding:0px;position:absolute;width:100%;height:100%;
 "use strict";
 var NULL=null;
 var d=document;
+d.onselectstart=function(){return false;}
 function numDelta(str,delta){return str.replace(/\-?[0-9]*\.?[0-9]*/g,function(m){return m!=""?Number(m)+delta:""});}
 Array.prototype.back=function(){return this.length==0?undefined:this[this.length-1];};
 function ge(id){return d.getElementById(id);}
@@ -181,7 +182,7 @@ if(init.init==undefined) init.init=function(divid){
 			card.disappearFrameItMax=23;
 			card.turn=game.turnCard;
 			card.disappear=game.disappear;
-			card.ae("click",game.clickEvt);
+			card.ae("mousedown",game.clickEvt);
 			tmp.ac(card);
 			cards.push(card);
 		}
