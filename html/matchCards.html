@@ -209,8 +209,14 @@ return game;
 updatePeriod=34;
 
 let game0=new gameInit();
+let btns=[ge("btn-restart")];
 game0.init();
-ge("btn-restart").centerize().ae("click",function(){if(confirm("sure to restart?"))game0.reset();}).childNodes[0].centerize();
+for(let x=btns.length;x--;)
+	btns[x].centerize().ae("click",function(){if(confirm("sure to restart?"))game0.reset();}).childNodes[0].centerize();
+d.body.onresize=function(){
+	for(let x=btns.length;x--;)
+		btns[x].centerize();
+};
 </script>
 </body>
 </html>
