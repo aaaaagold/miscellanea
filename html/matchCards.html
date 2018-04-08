@@ -7,7 +7,10 @@ body{margin:0px;border:0px;padding:0px;position:absolute;width:100%;height:100%;
 .__{white-space:nowrap;}
 ._{display:inline;}
 .maxwh{position:absolute;width:100%;height:100%;}
-.pannel{background-color:rgba(111,111,111,0.5);}
+.pannel{background-color:rgba(111,111,111,0.5);text-align:center;}
+.btn{margin:0px;position:relative;width:111px;height:23px;text-align:center;background-color:rgba(111,222,33,0.5);border:1px solid white;}
+.btn:hover{background-color:rgba(111,222,33,0.75);border:1px solid yellow;}
+.btn>div{position:absolute;} /* text here */
 .card{position:relative;margin:11px;border:1px solid white;display:inline;width:66px;height:99px;display:inline-block;background-color:rgba(111,111,11,0.5);}
 .card>div{position:absolute;}
 .cardrow{white-space:nowrap;display:block;}
@@ -59,7 +62,9 @@ let loop=function l(main,argvmain,itv,cb,argvcb){
 </head>
 <body >
 <div id="root" class="cen">
-<div class="pannel"></div>
+<div id="pannel" class="pannel">
+	<div id="btn-restart" class="btn"><div>restart</div></div>
+</div>
 <div id="cards"></div>
 </div>
 <script>
@@ -205,6 +210,7 @@ updatePeriod=34;
 
 let game0=new gameInit();
 game0.init();
+ge("btn-restart").centerize().ae("click",function(){if(confirm("sure to restart?"))game0.reset();}).childNodes[0].centerize();
 </script>
 </body>
 </html>
