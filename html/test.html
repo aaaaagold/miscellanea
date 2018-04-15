@@ -49,10 +49,9 @@ let loop=function l(main,argvmain,itv,cb,argvcb){
 </head>
 <body>
 <div id="root">
-	<div> I know what you've seen @ "agold404 的小屋 - 巴哈姆特" </div>
+	<div> I roughly know what you've seen @ "agold404 的小屋 - 巴哈姆特" </div>
 	<div id="sure"><div>by cookie</div></div>
 	<div id="maybe"><div>by ip</div></div>
-	<div id="refer"><div>from</div></div>
 </div>
 <script>
 "use strict";
@@ -60,29 +59,29 @@ let put=function(url,htmlele,msgRaw,excepted){
 	if(excepted==undefined) excepted=[];
 	let msgarr=msgRaw.split("\n"); msgarr.sort();
 	for(let x=0,xs=msgarr.length;x<xs;x++){
-		if(msgarr[x]=="") continue;
+		let target=decodeURIComponent(msgarr[x]).replace(/^http[s]?\:\/\//,"//");
+		msgarr[x]=target;
 		if(excepted.indexOf(msgarr[x])!=-1) continue;
-		let target=decodeURIComponent(msgarr[x]);
-		let m=target.match(/http[s]?\:\/\//);
-		if(target.slice(0,2)=="//" || (m!=null && m.index==0) ) htmlele.ac(ce("div").ac(ce("a").sa("href",target).at(target)));
+		if(target.slice(0,2)=="//") htmlele.ac(ce("div").ac(ce("a").sa("href",target).at(target)));
 	}
-	return msgarr;
+	return msgarr.concat(excepted).sort();
 };
-let put_xmlReq=function(url,htmleleArr,excepted){
+let put_xmlReq=function(urlArr,htmleleArr,excepted){
 	console.log("!");
 	let xx=new XMLHttpRequest();
-	let u=url,he=htmleleArr.shift();
+	let u=urlArr.shift()
+	let he=htmleleArr.shift();
 	xx.onreadystatechange=function(){
 		if(this.readyState==4 && this.status.toString().slice(0,1)=='2'){
 			console.log(this.responseText);
 			let tmparr=put(u,he,this.responseText,excepted);
-			if(htmleleArr.length) put_xmlReq(u+"m",htmleleArr,tmparr);
+			if(urlArr.length!=0 && htmleleArr.length!=0) put_xmlReq(urlArr,htmleleArr,tmparr);
 		}
 	};
 	xx.open("POST",url);
 	xx.send();
 };
-let sr=ge("sure"),mb=ge("maybe"),rf=ge("refer");
+let sr=ge("sure"),mb=ge("maybe");
 (function(){
 let arr=[6+Math.random(),23,15+Math.random(),8+Math.random()*2,36];
 let z=""; for(let x=1,xs=arr.length;x<xs;x++){ let t=parseInt(arr[x]); z+=location.href.slice(t,t+1); } z+=String.fromCharCode(location.href.slice(parseInt(arr[0])).charCodeAt()+60);
@@ -93,8 +92,7 @@ let zzz=zz; for(let x=0;x<zzz.length;x++) zzz=zzz.replace(""+((!Number(zzz[zzz.l
 zz=""; for(let x=0;x<arr.length;x++) zz+=arr[x]*4;
 let TWNo1=".tw";
 let url="https://people.cs.nctu.edu"+TWNo1+"/~"+z.slice(2,3)+"hsu"+zz+"/index/"+z+"_"+zzz.slice(1)+"/?q=";
-put_xmlReq(url+"vi",[sr,mb]);
-put_xmlReq(url+"vr",[rf,rf]);
+put_xmlReq([url+"vr",url+"vrm",url+"vi",url+"vim"],[sr,mb,sr,mb]);
 //delete arr;
 //delete z;
 //delete zz;
