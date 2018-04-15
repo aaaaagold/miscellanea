@@ -67,7 +67,7 @@ let put=function(url,htmlele,msgRaw,excepted){
 	return msgarr.concat(excepted).sort();
 };
 let put_xmlReq=function(urlArr,htmleleArr,excepted){
-	for(let x=excepted.length;x--;) console.log("Just Monika");
+	if(excepted!=undefined) for(let x=excepted.length;x--;) console.log("Just Monika");
 	let xx=new XMLHttpRequest();
 	let u=urlArr.shift()
 	let he=htmleleArr.shift();
