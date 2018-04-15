@@ -72,10 +72,18 @@ let put_xmlReq=function(urlArr,htmleleArr,excepted){
 	let u=urlArr.shift()
 	let he=htmleleArr.shift();
 	xx.onreadystatechange=function(){
-		if(this.readyState==4 && this.status.toString().slice(0,1)=='2'){
+		if(this.readyState!=4) return;
+		switch(this.status.toString().slice(0,1)){
+		case '2':{
 			let tmparr=put(u,he,this.responseText,excepted);
 			if(urlArr.length!=0 && htmleleArr.length!=0) setTimeout(function(){put_xmlReq(urlArr,htmleleArr,tmparr)},333);
 			else console.log("Ok");
+		}break;
+		case '5':{
+			urlArr.unshift(u);
+			htmleleArr.unshift(he);
+			setTimeout(function(){put_xmlReq(urlArr,htmleleArr,excepted)},1111);
+		}break;
 		}
 	};
 	xx.open("POST",u);
