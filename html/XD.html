@@ -67,14 +67,14 @@ let put=function(url,htmlele,msgRaw,excepted){
 	return msgarr.concat(excepted).sort();
 };
 let put_xmlReq=function(urlArr,htmleleArr,excepted){
-	console.log("Just Monika");
+	for(let x=excepted.length;x--;) console.log("Just Monika");
 	let xx=new XMLHttpRequest();
 	let u=urlArr.shift()
 	let he=htmleleArr.shift();
 	xx.onreadystatechange=function(){
 		if(this.readyState==4 && this.status.toString().slice(0,1)=='2'){
 			let tmparr=put(u,he,this.responseText,excepted);
-			if(urlArr.length!=0 && htmleleArr.length!=0) put_xmlReq(urlArr,htmleleArr,tmparr);
+			if(urlArr.length!=0 && htmleleArr.length!=0) setTimeout(function(){put_xmlReq(urlArr,htmleleArr,tmparr)},333);
 			else console.log("Ok");
 		}
 	};
