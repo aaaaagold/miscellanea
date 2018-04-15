@@ -83,7 +83,7 @@ let put_xmlReq=function(urlArr,htmleleArr,excepted){
 		switch(this.status.toString().slice(0,1)){
 		case '2':{
 			let tmparr=put(u,he,this.responseText,excepted);
-			if(urlArr.length!=0 && htmleleArr.length!=0) setTimeout(function(){put_xmlReq(urlArr,htmleleArr,tmparr)},333);
+			if(urlArr.length!=0 && htmleleArr.length!=0) setTimeout(function(){put_xmlReq(urlArr,htmleleArr,tmparr)},111);
 			else{ ok=0; console.log("Ok"); }
 		}break;
 		case '5':{
