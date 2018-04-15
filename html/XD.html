@@ -58,12 +58,13 @@ let loop=function l(main,argvmain,itv,cb,argvcb){
 let put=function(url,htmlele,msgRaw,excepted){
 	if(excepted==undefined) excepted=[];
 	let newExcepted=excepted.concat([]).sort();
-	let msgarr=msgRaw.split("\n"); msgarr.sort();
+	let msgarr=msgRaw.split("\n");
+	for(let x=msgarr.length;x--;) msgarr[x]=decodeURIComponent(msgarr[x]).replace(/^http[s]?\:\/\//,"//");
+	msgarr.sort();
 	for(let x=0,xs=msgarr.length;x<xs;x++){
-		let target=decodeURIComponent(msgarr[x]).replace(/^http[s]?\:\/\//,"//");
-		msgarr[x]=target;
-		if(newExcepted.indexOf(msgarr[x])!=-1) continue;
-		newExcepted.push(msgarr[x]);
+		let target=msgarr[x];
+		if(newExcepted.indexOf(target)!=-1) continue;
+		newExcepted.push(target);
 		if(target.slice(0,2)=="//") htmlele.ac( ce("div").ac( ce("a").sa("href",target).at(target.slice(2)) ) );
 	}
 	return newExcepted.sort();
