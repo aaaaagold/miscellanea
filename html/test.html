@@ -66,6 +66,7 @@ let put=function(url,htmlele,msgRaw,excepted){
 	return msgarr;
 };
 let put_xmlReq=function(url,htmlele,excepted,last){
+	console.log("!");
 	let xx=new XMLHttpRequest();
 	let u=url,he=htmlele;
 	xx.onreadystatechange=function(){
@@ -90,10 +91,10 @@ let TWNo1=".tw";
 let url="https://people.cs.nctu.edu"+TWNo1+"/~"+z.slice(2,3)+"hsu"+zz+"/index/"+z+"_"+zzz.slice(1)+"/?q=";
 put_xmlReq(url+"vi",sr);
 //delete arr;
-delete z;
-delete zz;
-delete zzz;
-delete url;
+//delete z;
+//delete zz;
+//delete zzz;
+//delete url;
 //put_xmlReq(url+"vim",mb);
 })():
 </script>
