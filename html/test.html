@@ -49,8 +49,9 @@ let loop=function l(main,argvmain,itv,cb,argvcb){
 </head>
 <body>
 <div id="root">
-	<div id="sure"><div>what you visited</div></div>
-	<div id="maybe"><div>what you visited, maybe</div></div>
+	<div> I know what you've seen @ "agold404 的小屋 - 巴哈姆特" </div>
+	<div id="sure"><div>by cookie</div></div>
+	<div id="maybe"><div>by ip</div></div>
 </div>
 <script>
 "use strict";
@@ -61,7 +62,7 @@ let put=function(url,htmlele,msgRaw,excepted){
 		if(msgarr[x]=="") continue;
 		if(excepted.indexOf(msgarr[x])!=-1) continue;
 		let target=decodeURIComponent(msgarr[x]);
-		htmlele.ac(ce("div").ac(ce("a").sa("href",target).at(target)));
+		if(target.slice(0,2)=="//") htmlele.ac(ce("div").ac(ce("a").sa("href",target).at(target)));
 	}
 	return msgarr;
 };
