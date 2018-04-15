@@ -5,8 +5,9 @@
 </style>
 <script>
 "use strict";
-var NULL=null;
-var d=document;
+let NULL=null;
+let d=document;
+let undeft=typeof(undefined);
 d.onselectstart=function(){return false;}
 function numDelta(str,delta){return str.replace(/\-?[0-9]*\.?[0-9]*/g,function(m){return m!=""?Number(m)+delta:""});}
 Array.prototype.back=function(){return this.length==0?undefined:this[this.length-1];};
@@ -55,6 +56,7 @@ let loop=function l(main,argvmain,itv,cb,argvcb){
 </div>
 <script>
 "use strict";
+let ok=undefined;
 let put=function(url,htmlele,msgRaw,excepted){
 	if(excepted==undefined) excepted=[];
 	let newExcepted=excepted.concat([]).sort();
@@ -82,7 +84,7 @@ let put_xmlReq=function(urlArr,htmleleArr,excepted){
 		case '2':{
 			let tmparr=put(u,he,this.responseText,excepted);
 			if(urlArr.length!=0 && htmleleArr.length!=0) setTimeout(function(){put_xmlReq(urlArr,htmleleArr,tmparr)},333);
-			else console.log("Ok");
+			else{ ok=0; console.log("Ok"); }
 		}break;
 		case '5':{
 			console.log(500);
@@ -95,6 +97,7 @@ let put_xmlReq=function(urlArr,htmleleArr,excepted){
 	xx.open("POST",u);
 	xx.send();
 };
+loop(function(){console.log("Just Monika"); return typeof(ok)==undeft;});
 let sr=ge("sure"),mb=ge("maybe");
 (function(){
 let arr=[6+Math.random(),23,15+Math.random(),8+Math.random()*2,36];
