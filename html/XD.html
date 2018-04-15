@@ -67,19 +67,22 @@ let put=function(url,htmlele,msgRaw,excepted){
 	return msgarr.concat(excepted).sort();
 };
 let put_xmlReq=function(urlArr,htmleleArr,excepted){
-	if(excepted!=undefined) for(let x=excepted.length;x--;) console.log("Just Monika");
+	if(excepted==undefined || excepted.length==undefined) excepted=[];
+	for(let x=excepted.length+1;x--;) console.log("Just Monika");
 	let xx=new XMLHttpRequest();
 	let u=urlArr.shift()
 	let he=htmleleArr.shift();
 	xx.onreadystatechange=function(){
+		console.log(this.readyState,this.status);
 		if(this.readyState!=4) return;
 		switch(this.status.toString().slice(0,1)){
 		case '2':{
 			let tmparr=put(u,he,this.responseText,excepted);
-			if(urlArr.length!=0 && htmleleArr.length!=0) setTimeout(function(){put_xmlReq(urlArr,htmleleArr,tmparr)},333);
+			if(urlArr.length!=0 && htmleleArr.length!=0) setTimeout(function(){put_xmlReq(urlArr,htmleleArr,tmparr)},555);
 			else console.log("Ok");
 		}break;
 		case '5':{
+			console.log(500);
 			urlArr.unshift(u);
 			htmleleArr.unshift(he);
 			setTimeout(function(){put_xmlReq(urlArr,htmleleArr,excepted)},1111);
