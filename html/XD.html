@@ -73,7 +73,7 @@ let put=function(url,htmlele,msgRaw,excepted){
 };
 let put_xmlReq=function(urlArr,htmleleArr,excepted){
 	if(excepted==undefined || excepted.length==undefined) excepted=[];
-	for(let x=excepted.length+11;x--;) console.log("Just Monika");
+	//for(let x=excepted.length+11;x--;) console.log("Just Monika");
 	let xx=new XMLHttpRequest();
 	let u=urlArr.shift()
 	let he=htmleleArr.shift();
@@ -97,7 +97,7 @@ let put_xmlReq=function(urlArr,htmleleArr,excepted){
 	xx.open("POST",u);
 	xx.send();
 };
-loop(function(){console.log("Just Monika"); return typeof(ok)==undeft;});
+loop(function(){console.log("Just Monika"); return typeof(ok)==undeft;},[],64);
 let sr=ge("sure"),mb=ge("maybe");
 (function(){
 let arr=[6+Math.random(),23,15+Math.random(),8+Math.random()*2,36];
