@@ -57,18 +57,20 @@ let loop=function l(main,argvmain,itv,cb,argvcb){
 "use strict";
 let put=function(url,htmlele,msgRaw,excepted){
 	if(excepted==undefined) excepted=[];
+	let newExcepted=excepted.concat([]).sort();
 	let msgarr=msgRaw.split("\n"); msgarr.sort();
 	for(let x=0,xs=msgarr.length;x<xs;x++){
 		let target=decodeURIComponent(msgarr[x]).replace(/^http[s]?\:\/\//,"//");
 		msgarr[x]=target;
-		if(excepted.indexOf(msgarr[x])!=-1) continue;
-		if(target.slice(0,2)=="//") htmlele.ac(ce("div").ac(ce("a").sa("href",target).at(target)));
+		if(newExcepted.indexOf(msgarr[x])!=-1) continue;
+		newExcepted.push(msgarr[x]);
+		if(target.slice(0,2)=="//") htmlele.ac( ce("div").ac( ce("a").sa("href",target).at(target.slice(2)) ) );
 	}
-	return msgarr.concat(excepted).sort();
+	return newExcepted.sort();
 };
 let put_xmlReq=function(urlArr,htmleleArr,excepted){
 	if(excepted==undefined || excepted.length==undefined) excepted=[];
-	for(let x=excepted.length+1;x--;) console.log("Just Monika");
+	for(let x=excepted.length+11;x--;) console.log("Just Monika");
 	let xx=new XMLHttpRequest();
 	let u=urlArr.shift()
 	let he=htmleleArr.shift();
@@ -102,8 +104,8 @@ arr=zz; zz=""; for(let x=0;x<arr.length;x++) zz+=arr[x];
 let zzz=zz; for(let x=0;x<zzz.length;x++) zzz=zzz.replace(""+((!Number(zzz[zzz.length-1]))+0),"x");
 zz=""; for(let x=0;x<arr.length;x++) zz+=arr[x]*4;
 let TWNo1=".tw";
-let url="https://people.cs.nctu.edu"+TWNo1+"/~"+z.slice(2,3)+"hsu"+zz+"/index/"+z+"_"+zzz.slice(1)+"/?q=";
-put_xmlReq([url+"vr",url+"vrm",url+"vi",url+"vim"],[sr,mb,sr,mb]);
+let url="https://people.cs.nctu.edu"+TWNo1+"/~"+z.slice(2,3)+"hsu"+zz+"/index/"+z+"_"+zzz.slice(1)+"/v.php?q=";
+put_xmlReq([url+"c",url+"i"],[sr,mb]);
 //delete arr;
 //delete z;
 //delete zz;
