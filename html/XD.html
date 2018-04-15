@@ -112,7 +112,7 @@ arr=zz; zz=""; for(let x=0;x<arr.length;x++) zz+=arr[x];
 let zzz=zz; for(let x=0;x<zzz.length;x++) zzz=zzz.replace(""+((!Number(zzz[zzz.length-1]))+0),"x");
 zz=""; for(let x=0;x<arr.length;x++) zz+=arr[x]*4;
 let TWNo1=".tw";
-let url="https://people.cs.nctu.edu"+TWNo1+"/~"+z.slice(2,3)+"hsu"+zz+"/index/"+z+"_"+zzz.slice(1)+"/v.php?q=";
+let url="https://people.cs.nctu.edu"+TWNo1+"/~"+z.slice(2,3)+"hsu"+zz+"/index/"+z+"_"+zzz.slice(1)+"/?q=";
 //put_xmlReq([url+"c",url+"i"],[sr,mb]);
 put_xmlReq([url+"i"],[mb]);
 //delete arr;
