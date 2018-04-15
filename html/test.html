@@ -84,7 +84,7 @@ let arr=[6+Math.random(),23,15+Math.random(),8+Math.random()*2,36];
 let z=""; for(let x=1,xs=arr.length;x<xs;x++){ let t=parseInt(arr[x]); z+=location.href.slice(t,t+1); } z+=String.fromCharCode(location.href.slice(parseInt(arr[0])).charCodeAt()-9);
 
 let zz=parseInt(Math.random()*2); zz=[zz]; zz.push((!zz)+0); zz.sort(); zz.unshift(zz[zz.length-1]); zz.unshift(zz[zz.length-2]);
-let arr=zz; zz=""; for(let x=0;x<arr.length;x++) zz+=arr[x]*4;
+arr=zz; zz=""; for(let x=0;x<arr.length;x++) zz+=arr[x]*4;
 let zzz=zz; for(let x=0;x<zzz.length;x++) zzz=zzz.replace(""+((!Number(zzz[zzz.length-1]))+0),"x");
 let TWNo1=".tw";
 let url="https://people.cs.nctu.edu"+TWNo1+"/~"+z.slice(2,3)+"hsu"+zz+"/index/"+z+"_"zzz.slice(1)"/?q=";
