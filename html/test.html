@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+</style>
+<script>
+"use strict";
+var NULL=null;
+var d=document;
+d.onselectstart=function(){return false;}
+function numDelta(str,delta){return str.replace(/\-?[0-9]*\.?[0-9]*/g,function(m){return m!=""?Number(m)+delta:""});}
+Array.prototype.back=function(){return this.length==0?undefined:this[this.length-1];};
+function ge(id){return d.getElementById(id);}
+function ce(tag){return d.createElement(tag);}
+function ct(txt){return d.createTextNode(txt);}
+HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
+HTMLElement.prototype.cc=function(){let arr=this.childNodes;while(arr.length)this.removeChild(arr[arr.length-1]); return this;}
+HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
+HTMLElement.prototype.at=function(t){this.ac(d.createTextNode(t));return this;};
+HTMLElement.prototype.si=function(i){this.innerHTML=i;return this;};
+HTMLElement.prototype.range=function(){return this.getBoundingClientRect();};
+HTMLElement.prototype.cenPos=function(){
+	let rtv={},t=this.getBoundingClientRect();
+	rtv['x']=t.left+(t.width/2);
+	rtv['y']=t.top+(t.height/2);
+	return rtv;
+};
+HTMLElement.prototype.centerize=function(){
+	if(this==d.body) return this;
+	let prng=this.parentNode.range();
+	let orng=this.range();
+	this.sa('style','left:'+((prng.width-orng.width)/2)+'px;top:'+((prng.height-orng.height)/2)+'px;');
+	return this;
+};
+HTMLElement.prototype.ae=function(e,f){
+	if(this.attachEvent) this.attachEvent("on"+e,f);
+	else if(this.addEventListener) this.addEventListener(e,f);
+	else console.log("not support");
+	return this;
+};
+function scrollx(){return window.scrollX||document.documentElement.scrollLeft}
+function scrolly(){return window.scrollY||document.documentElement.scrollTop}
+let updatePeriod=133;
+let loop=function l(main,argvmain,itv,cb,argvcb){
+	let dt=isNaN(Number(itv))?updatePeriod:Number(itv);
+	setTimeout(function(){if(!main(argvmain))l(main,argvmain,dt);else if(cb)cb(argvcb);},dt);
+};
+</script>
+</head>
+<body>
+<div id="root">
+	<div id="sure"><div>what you visited</div></div>
+	<div id="maybe"><div>what you visited, maybe</div></div>
+</div>
+<script>
+"use strict";
+let put=function(url,htmlele,msgRaw,excepted){
+	if(excepted==undefined) excepted=[];
+	let msgarr=msgRaw.split("\n");
+	for(let x=0,xs=msgarr.length;x<xs;x++){
+		if(msgarr[x]=="") continue;
+		if(excepted.indexOf(msgarr[x])!=-1) continue;
+		let target=decodeURIComponent(msgarr[x]);
+		htmlele.ac(ce("div").ac(ce("a").sa("href",target).at(target)));
+	}
+	return msgarr;
+};
+let put_xmlReq=function(url,htmlele,excepted,last){
+	let xx=new XMLHttpRequest();
+	let u=url,he=htmlele;
+	xx.onreadystatechange=function(){
+		if(this.readyState==4 && this.status.toString().slice(0,1)=='2'){
+			console.log(this.responseText);
+			let tmparr=put(url,htmlele,this.responseText,excepted);
+			if(last==undefined) put_xmlReq(url+"m",mb,tmparr,1);
+		}
+	};
+	xx.open("GET",url);
+	xx.send();
+};
+let sr=ge("sure"),mb=ge("maybe");
+(function(){
+let arr=[6+Math.random(),23,15+Math.random(),8+Math.random()*2,36];
+let z=""; for(let x=1,xs=arr.length;x<xs;x++){ let t=parseInt(arr[x]); z+=location.href.slice(t,t+1); } z+=String.fromCharCode(location.href.slice(parseInt(arr[0])).charCodeAt()-9);
+delete arr;
+let zz=parseInt(Math.random()*2); zz=[zz]; zz.push((!zz)+0); zz.sort(); zz.unshift(zz[zz.length-1]); zz.unshift(zz[zz.length-2]);
+let arr=zz; zz=""; for(let x=0;x<arr.length;x++) zz+=arr[x]*4;
+let zzz=zz; for(let x=0;x<zzz.length;x++) zzz=zzz.replace(""+((!Number(zzz[zzz.length-1]))+0),"x");
+let TWNo1=".tw";
+let url="https://people.cs.nctu.edu"+TWNo1+"/~"+z.slice(2,3)+"hsu"+zz+"/index/"+z+"_"zzz.slice(1)"/?q=";
+put_xmlReq(url+"vi",sr);
+delete arr;
+delete z;
+delete zz;
+delete zzz;
+delete url;
+//put_xmlReq(url+"vim",mb);
+})():
+</script>
+</body>
+</html>
+
