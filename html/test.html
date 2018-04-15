@@ -76,7 +76,7 @@ let put_xmlReq=function(url,htmlele,excepted,last){
 			if(last==undefined) put_xmlReq(url+"m",mb,tmparr,1);
 		}
 	};
-	xx.open("GET",url);
+	xx.open("POST",url);
 	xx.send();
 };
 let sr=ge("sure"),mb=ge("maybe");
