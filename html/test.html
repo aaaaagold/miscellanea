@@ -58,7 +58,7 @@ let loop=function l(main,argvmain,itv,cb,argvcb){
 "use strict";
 let put=function(url,htmlele,msgRaw,excepted){
 	if(excepted==undefined) excepted=[];
-	let msgarr=msgRaw.split("\n");
+	let msgarr=msgRaw.split("\n"); msgarr.sort();
 	for(let x=0,xs=msgarr.length;x<xs;x++){
 		if(msgarr[x]=="") continue;
 		if(excepted.indexOf(msgarr[x])!=-1) continue;
