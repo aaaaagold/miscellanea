@@ -1,4 +1,6 @@
 // current version not completed
+// still need to install web plugin
+// DES decryption is not implemented yet
 
 // beanfun login
 // need to paste on console
