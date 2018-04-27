@@ -1,5 +1,5 @@
 // current version not completed
-// still need to install web plugin
+// still need to install web plugin; .exe plugin is not needed
 // DES decryption is not implemented yet
 
 // beanfun login
