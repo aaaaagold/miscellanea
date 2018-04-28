@@ -1,11 +1,25 @@
-// current version not completed
-// still need to install web plugin; .exe plugin is not needed
+/* 
+ 
+* current version functionally completed
+ 
+* Beanfun Game Account OTP Getter
 
-// beanfun login
-// need to paste on console or,
-// you may add the following to bookmarks to trigger (@ tw.beanfun.com)
-// javascript:document.head.appendChild((function(){ let t=document.createElement("script"); t.setAttribute("type","text/javascript"); t.setAttribute("src","https://aaaaagold.github.io/miscellanea/js/bfLogin.js"); return t; })());
-
+* This script works AFTER you login to the web page
+* This script will send queries to get games you play, accounts of games. All information depends on what bf server says.
+* This script change the current web page to a simpler style, the top is to display the OTP.
+* 
+* need to paste on console or,
+* you may add the following to bookmarks to trigger (make sure your domain @ tw.beanfun.com)
+* javascript:document.head.appendChild((function(){ let t=document.createElement("script"); t.setAttribute("type","text/javascript"); t.setAttribute("src","https://aaaaagold.github.io/miscellanea/js/bfGameAccountOtp.js"); return t; })());
+* 
+* usage flow:
+ 1. goto tw.beanfun.com on your web browser, and login
+ 2. trigger this script
+ 3. use your mouse to select games at left hand side
+ 4. use your mouse to select game accounts  at right hand side
+ 5. the OTP is display on the top, input it manually
+ 
+*/
 
 (function(){
 
@@ -30,6 +44,16 @@ let jurl=function jurl(url,method,data,callback){
 	xhttp.send(method==="GET"?undefined:data);
 },hostAt="https://tw.beanfun.com/";
 let rt,otp,svc,game,acc; // DOM
+let webToken=(function(){
+	let re=/(^|(;\s))bfWebToken=([0-9A-Fa-f]*)((;\s)|$)/g;
+	let m=d.cookie.match(re);
+	if(m==null) return null;
+	return m[0].replace(re,"$3");
+})(); // get cookie
+if(webToken==null){
+	alert("Unable to get cookie: bfWebToken. Perhaps:\n 1. you are not login at web page\n 2. cookie name is changed, you need to update the script by yourself.\n 3. unknown problems.");
+	return;
+}
 let accQSerial=0,infoQSerial=0; // prevent conflict
 let genBlock=function genBlock(){
 	
@@ -330,22 +354,31 @@ let getGameAccountLoginInfo=function(query_serial,svcCode,svcRegion,accName,accS
 	});
 
 };
-let loadAccoutns=function loadAccoutns(query_serial,gameId){
+let loadAccoutns=function core(query_serial,gameId){
 	acc.ra(1);
 	acc.ac(q.ce("div").at("loading ..."));
-	jurl(hostAt+"beanfun_block/game_zone/game_start.aspx?service_code_and_region="+gameId,"GET","",function(txt){
-		if(query_serial!=accQSerial){ console.log("conflict: accs"); return; }
-		acc.ra(1);
-		let svc=gameId.split("_");
-		let rtvdom=new DOMParser().parseFromString(txt,"text/html");
-		let arr=rtvdom.querySelectorAll("#divServiceAccountList>ul>li>div.Account");
-		for(let x=0;x<arr.length;x++){
-			let r=arr[x],a=q.ce("div").sa("accName",r.ga("id")).sa("uid",r.ga("sn")).ac(
-				q.ce("div").at(r.ga("name"))
-			);
-			a.onclick=function(){getGameAccountLoginInfo(infoQSerial+=1,svc[0],svc[1],r.ga("id"),r.ga("sn"));};
-			acc.ac(a);
+	if(core.getAccounts==undefined){
+		core.getAccounts=function getAccounts(query_serial,gameId){
+			jurl(hostAt+"beanfun_block/game_zone/game_start.aspx?service_code_and_region="+gameId,"GET","",function(txt){
+				if(query_serial!=accQSerial){ console.log("conflict: accs"); return; }
+				acc.ra(1);
+				let svc=gameId.split("_");
+				let rtvdom=new DOMParser().parseFromString(txt,"text/html");
+				let arr=rtvdom.querySelectorAll("#divServiceAccountList>ul>li>div.Account");
+				for(let x=0;x<arr.length;x++){
+					let r=arr[x],a=q.ce("div").sa("accName",r.ga("id")).sa("uid",r.ga("sn")).ac(
+						q.ce("div").at(r.ga("name"))
+					);
+					a.onclick=function(){getGameAccountLoginInfo(infoQSerial+=1,svc[0],svc[1],r.ga("id"),r.ga("sn"));};
+					acc.ac(a);
+				}
+			});
 		}
+	}
+	if(core.notAuthed==0) core.getAccounts(query_serial,gameId);
+	else jurl(hostAt+"beanfun_block/auth.aspx?channel=game_zone&page_and_query=game_start.aspx%3Fservice_code_and_region%3D"+gameId+"&web_token="+webToken,"GET","",function(){
+		core.notAuthed=0;
+		core.getAccounts(query_serial,gameId);
 	});
 };
 let loadGames=function loadGames(){
