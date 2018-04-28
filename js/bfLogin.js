@@ -3,7 +3,7 @@
 
 // beanfun login
 // need to paste on console or,
-// you may add the following to bookmarks to trigger
+// you may add the following to bookmarks to trigger (@ tw.beanfun.com)
 // javascript:document.head.appendChild((function(){ let t=document.createElement("script"); t.setAttribute("type","text/javascript"); t.setAttribute("src","https://aaaaagold.github.io/miscellanea/js/bfLogin.js"); return t; })());
 
 
