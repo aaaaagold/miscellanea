@@ -267,7 +267,7 @@ let desDecrypt=function(s){
 			let aaaa=sep32b(c);
 			{ let tmp=aaaa[0]; aaaa[0]=aaaa[1]; aaaa[1]=tmp; }
 			for(let x=16;x--;){
-				console.log(core.subkeys[order[x]]);
+				//console.log(core.subkeys[order[x]]);
 				aaaa[1]=xor(mapping(map_p,sb(xor(mapping(map_e,aaaa[0]),core.subkeys[order[x]]))),aaaa[1]);
 				{ let tmp=aaaa[0]; aaaa[0]=aaaa[1]; aaaa[1]=tmp; }
 			}
