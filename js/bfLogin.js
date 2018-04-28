@@ -2,11 +2,12 @@
 // still need to install web plugin; .exe plugin is not needed
 
 // beanfun login
-// need to paste on console
+// need to paste on console or,
+// you may add the following to bookmarks to trigger
+// javascript:document.head.appendChild((function(){ let t=document.createElement("script"); t.setAttribute("type","text/javascript"); t.setAttribute("src","https://aaaaagold.github.io/miscellanea/js/bfLogin.js"); return t; })());
 
 
-//(function(){
-
+(function(){
 
 
 let d=document,q={};
@@ -401,4 +402,4 @@ if(typeof(m_strSecretCode)==typeof(undefined)) document.body.appendChild((functi
 })());
 
 
-//})();
+})();
