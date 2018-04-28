@@ -397,6 +397,7 @@ if(typeof(m_strSecretCode)==typeof(undefined)) document.body.appendChild((functi
 	};
 	return s;
 })());
+else{genBlock();loadGames();}
 
 
 })();
