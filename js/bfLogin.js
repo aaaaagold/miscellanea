@@ -34,14 +34,11 @@ let accQSerial=0,infoQSerial=0; // prevent conflict
 let genBlock=function genBlock(){
 	
 	rt=q.ce("div").sa("id","root").sa("class","maxToParent");
-	rt.ac( otp=q.ce("div").sa("id","otp1").sa("class","otp").ac(q.ce("div").at("otp:")) .ac(q.ce("div").at("aaaaa")) );
+	rt.ac( otp=q.ce("div").sa("id","otp1").sa("class","otp").ac(q.ce("div").at("otp:")) );
 	svc=q.ce("div").sa("class","svc");
 	d.body.ac(rt.ac(svc));
-	svc.ac(q.ce("div").ac( game=q.ce("div").sa("id","games1").ac(q.ce("div").at("games:")) .ac(q.ce("div").at("aaaaa")) ));
-	svc.ac(q.ce("div").ac( acc=q.ce("div").sa("id","accs1").ac(q.ce("div").at("accounts:")) .ac(q.ce("div").at("aaaaa")) ));
-	for(let x=22;x--;){
-		svc.childNodes[0].childNodes[0].ac(q.ce("div").at("aaaaa"));
-	}
+	svc.ac(q.ce("div").ac( game=q.ce("div").sa("id","games1").ac(q.ce("div").at("games:")) ));
+	svc.ac(q.ce("div").ac( acc=q.ce("div").sa("id","accs1").ac(q.ce("div").at("accounts:")) ));
 };
 let clearCurrent=function clearCurrent(){
 	d.write('.');
