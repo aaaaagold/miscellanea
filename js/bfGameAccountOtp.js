@@ -58,7 +58,13 @@ let accQSerial=0,infoQSerial=0; // prevent conflict
 let genBlock=function genBlock(){
 	
 	rt=q.ce("div").sa("id","root").sa("class","maxToParent");
-	rt.ac( otp=q.ce("div").sa("id","otp1").sa("class","otp").ac(q.ce("div").at("otp:")) );
+	rt.ac( otp=q.ce("div").sa("id","otp1").sa("class","otp").
+		ac(q.ce("div").
+			ac(q.ce("div").at("otp-username: "))
+		).ac(q.ce("div").
+			ac(q.ce("div").at("otp-password: "))
+		)
+	);
 	svc=q.ce("div").sa("class","svc");
 	d.body.ac(rt.ac(svc));
 	svc.ac(q.ce("div").ac( game=q.ce("div").sa("id","games1").ac(q.ce("div").at("games:")) ));
@@ -75,8 +81,8 @@ let clearCurrent=function clearCurrent(){
 		css.at("body{position:absolute;background-color:#000000;color:#FFFFFF;}");
 		css.at("#root{position:relative;}");
 		// OTP
-		css.at(".otp{position:relative;height:11%;}");
-		css.at(".otp>div{margin:11px 0px 0px 11px;display:inline-block;}");
+		css.at(".otp{position:relative;height:11%;padding:11px 0px 0px 11px;}");
+		css.at(".otp>div>div{margin:0px 11px 0px 0px;display:inline-block;}");
 		// services
 		css.at(".svc{position:relative;width:100%;height:89%;}");
 		// cut w:50.50
@@ -346,9 +352,10 @@ let getGameAccountLoginInfo=function(query_serial,svcCode,svcRegion,accName,accS
 			"GET","",function(txt){
 				if(txt.slice(0,1)!="1") console.log(txt);
 				else{
-					otp.ra(1).ac(q.ce("div").at("calculating ..."));
+					otp.childNodes[0].ra(1).ac(q.ce("div").at(accName));
+					otp.childNodes[1].ra(1).ac(q.ce("div").at("calculating ..."));
 					let otpCode=desDecrypt(txt.slice(2));
-					otp.ra(1).ac(q.ce("div").at(otpCode));
+					otp.childNodes[1].ra(1).ac(q.ce("div").at(otpCode));
 				}
 		});
 	});
@@ -430,7 +437,8 @@ if(typeof(m_strSecretCode)==typeof(undefined)) document.body.appendChild((functi
 	};
 	return s;
 })());
-else{genBlock();loadGames();}
+else{console.log("regen"); genBlock();loadGames();}
 
 
 })();
+
