@@ -81,8 +81,8 @@ let clearCurrent=function clearCurrent(){
 		css.at("body{position:absolute;background-color:#000000;color:#FFFFFF;}");
 		css.at("#root{position:relative;}");
 		// OTP
-		css.at(".otp{position:relative;height:11%;padding:11px 0px 0px 11px;}");
-		css.at(".otp>div>div{margin:0px 11px 0px 0px;display:inline-block;}");
+		css.at(".otp{position:relative;height:11%;}");
+		css.at(".otp>div>div{margin:11px 0px 0px 11px;display:inline-block;}");
 		// services
 		css.at(".svc{position:relative;width:100%;height:89%;}");
 		// cut w:50.50
