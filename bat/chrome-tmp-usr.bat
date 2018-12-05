@@ -1,12 +1,12 @@
 @set i=0
-set dirPrefix=%TEMP%\User Data
+set dirPrefix=%TEMP%\chrome\User Data
 
 :checkUsableFolderName_UseIt
 @set /A i+=1
 @echo %i%
 @set dir="%dirPrefix% %i%"
 @mkdir %dir% ^
- && ( echo>%dir%\"First Run" && "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --incognito --user-data-dir=%dir% 
+ && ( echo>%dir%\"First Run" && mkdir %dir%"\SwReporter\VERSION\software_reporter_tool.exe" && "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --incognito --user-data-dir=%dir% 
  goto mainProcessNotFound_check_lockfile 
  exit /b 1 )
 @goto checkUsableFolderName_UseIt
