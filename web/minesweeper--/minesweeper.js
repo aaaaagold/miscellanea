@@ -55,7 +55,7 @@ class minesweeper{
 	}
 	initGame(){
 		this._revealMap.length=this._bombMap.length=0;
-		this._revealMap.length=this._bombMap.length=this._cnt=this._w*this._h;
+		this._cnt=(this._revealMap.length=this._bombMap.length=this._w*this._h)-this._c;
 		const candi=[],max=this._xy2idx(this._w-1,this._h-1)+1;
 		for(let x=0;x!==max;++x) candi.push(x);
 		for(let r=this._c;r--;){
@@ -68,7 +68,7 @@ class minesweeper{
 	}
 	canReveal(x,y){ return this._revealMap[this._xy2idx(x,y)]!==1; }
 	reveal(x,y){
-		if(!this._isValidXY(x,y)||!this.canReveal(x,y)) return;
+		if(!this._isValidXY(x,y)||!this.canReveal(x,y)||!this._cnt) return;
 		const idx=this._xy2idx(x,y);
 		if(this._revealMap[idx]) return;
 		if(this._bombMap[idx]){
@@ -82,6 +82,7 @@ class minesweeper{
 			const curr=this._popQ();
 			if(this._revealMap[curr]) continue;
 			this._revealMap[curr]=1;
+			--this._cnt;
 			const x=curr%this._w;
 			const y=~~(curr/this._w);
 			const cnt=this._nearBomb(x,y);
@@ -92,6 +93,7 @@ class minesweeper{
 				this._pushQ(this._xy2idx(x+i,y+j));
 			} }
 		}
+		if(!this._cnt) this.onDone();
 	}
 	isFlagged(x,y){ return this._revealMap[this._xy2idx(x,y)]===2; }
 	flagIt(x,y){
