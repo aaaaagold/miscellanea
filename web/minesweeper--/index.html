@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<style>
+body{
+position:absolute;
+margin:0px;
+padding:0px;
+border:0px solid black;
+}
+#root{
+position:absolute;
+margin:0px;
+padding:0px;
+border:0px solid black;
+}
+.row{
+position:relative;
+width:100%;
+left:0px;
+display:flex;
+}
+.row>div{
+display:inline-block;
+position:relative;
+left:0px;
+width:32px;
+height:32px;
+margin:0px;
+padding:0px;
+border:0px solid black;
+}
+.row>div>div{
+position:absolute;
+left:0px;
+top:0px;
+right:0px;
+bottom:0px;
+margin:0px;
+padding:0px;
+border:1px solid black;
+font-size:24px;
+text-align:center;
+}
+</style>
+<head>
+<script src="minesweeper.js"></script>
+</head>
+<body>
+<div id="root"><div class="row"><pre>url "GET" args:
+w=width ; h=height
+e.g. ?w=20&h=20</pre></div></div>
+<script>
+"use strict";
+(()=>{
+const root=document.getElementById('root');
+const newdiv=()=>document.createElement('div');
+const w=20,h=20,tbl=[];
+for(let y=0;y!==h;++y){
+	const row=newdiv();
+	tbl[y]=[];
+	row.setAttribute('class','row');
+	for(let x=0;x!==w;++x){
+		const div=newdiv(),cell=tbl[y][x]=newdiv();
+		const i=x,j=y;
+		cell.onclick=()=>ms.reveal(i,j);
+		div.appendChild(cell);
+		row.appendChild(div);
+	}
+	root.appendChild(row);
+}
+const colors=[..."012345678"].map(x=>{
+	let rtv="#";
+	x=Number(x);
+	for(let b=4;b;b>>=1) rtv+=x&b?"FF":"77";
+	return rtv;
+})
+const ms=new minesweeper(20,20,40,{
+onreveal:(x,y,c)=>{
+	console.log('reveal',x,y,'','got',c);
+	const div=tbl[y][x];
+	if(colors[c]) div.style.backgroundColor=colors[c];
+	if(c) div.appendChild(document.createTextNode(c));
+},
+onboom:(x,y)=>{
+	console.log('boom',x,y);
+	const div=tbl[y][x];
+	div.style.backgroundColor="#000000";
+	div.style.color="#FF0000";
+	div.appendChild(document.createTextNode("*"));
+},
+});
+
+})();
+</script>
+</body>
+</html>
