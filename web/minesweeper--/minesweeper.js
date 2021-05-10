@@ -61,8 +61,8 @@ class minesweeper{
 		for(let r=this._c;r--;){
 			const idx1=~~(Math.random()*candi.length);
 			const idx2=candi.length-1;
-			const tmp=candi[idx1]; candi[idx1]=candi[idx2]; candi[idx2]=tmp;
-			this._bombMap[tmp]=true;
+			{ const tmp=candi[idx1]; candi[idx1]=candi[idx2]; candi[idx2]=tmp; }
+			this._bombMap[candi.pop()]=true;
 		}
 		return this;
 	}
