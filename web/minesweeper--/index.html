@@ -72,6 +72,15 @@ for(let y=0;y!==h;++y){
 		const div=newdiv(),cell=tbl[y][x]=newdiv();
 		const i=x,j=y;
 		cell.onclick=()=>ms.reveal(i,j);
+		cell.oncontextmenu=e=>{
+			e.preventDefault();
+			ms.flagIt(i,j);
+			if(ms.isFlagged(i,j)) cell.appendChild(cell.flag=document.createTextNode("F"));
+			else if(cell.flag){
+				cell.removeChild(cell.flag);
+				cell.flag=0;
+			}
+		}
 		div.appendChild(cell);
 		row.appendChild(div);
 	}
@@ -99,7 +108,8 @@ onboom:(x,y)=>{
 },
 ondone:(x,y)=>{
 	for(let y=0;y!==h;++y){ for(let x=0;x!==w;++x){
-		if(div.childNodes.length) continue;
+		const div=tbl[y][x];
+		if(!ms.canReveal(x,y)) continue;
 		div.style.backgroundColor="#FFFFFF";
 		div.style.color="#00FF00";
 		div.appendChild(document.createTextNode("*"));
