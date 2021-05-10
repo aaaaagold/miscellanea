@@ -68,7 +68,7 @@ class minesweeper{
 	}
 	canReveal(x,y){ return this._revealMap[this._xy2idx(x,y)]!==1; }
 	reveal(x,y){
-		if(!this._isValidXY(x,y)||!this.canReveal(x,y)||!this._cnt) return;
+		if(!this._cnt||this.isFlagged(x,y)||!this._isValidXY(x,y)||!this.canReveal(x,y)) return;
 		const idx=this._xy2idx(x,y);
 		if(this._revealMap[idx]) return;
 		if(this._bombMap[idx]){
@@ -93,7 +93,7 @@ class minesweeper{
 				this._pushQ(this._xy2idx(x+i,y+j));
 			} }
 		}
-		if(!this._cnt) this.onDone();
+		if(!this._cnt) this.onDone(x,y);
 	}
 	isFlagged(x,y){ return this._revealMap[this._xy2idx(x,y)]===2; }
 	flagIt(x,y){
