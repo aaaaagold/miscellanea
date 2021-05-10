@@ -47,15 +47,24 @@ text-align:center;
 <script src="minesweeper.js"></script>
 </head>
 <body>
-<div id="root"><div class="row"><pre>url "GET" args:
-w=width ; h=height
-e.g. ?w=20&h=20</pre></div></div>
+<div id="root"><div class="row"><pre>url "GET" args: (the order of them doesn't matter)
+w=width ; h=height ; c=num_of_bombs
+e.g. ?w=20&h=20&c=40</pre></div></div>
 <script>
 "use strict";
 (()=>{
+const args={}; location.search.slice(1).split("&").forEach(x=>{
+	if(x==='') continue;
+	if(x.indexOf('=')===-1) args[x]=true;
+	else{
+		const kv=x.split('=');
+		args[kv[0]]=kv[1];
+	}
+});
 const root=document.getElementById('root');
 const newdiv=()=>document.createElement('div');
-const w=20,h=20,tbl=[];
+const w=args.w===undefined?20:(Number(args.w)||1),h=args.h===undefined?20:(Number(args.h)||1),c=args.c===undefined?40:(Number(args.c)||1);
+const tbl=[];
 for(let y=0;y!==h;++y){
 	const row=newdiv();
 	tbl[y]=[];
@@ -75,7 +84,7 @@ const colors=[..."012345678"].map(x=>{
 	for(let b=4;b;b>>=1) rtv+=x&b?"FF":"77";
 	return rtv;
 })
-const ms=new minesweeper(20,20,40,{
+const ms=new minesweeper(w,h,c,{
 onreveal:(x,y,c)=>{
 	console.log('reveal',x,y,'','got',c);
 	const div=tbl[y][x];
