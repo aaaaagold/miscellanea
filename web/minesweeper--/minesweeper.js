@@ -72,7 +72,7 @@ class minesweeper{
 		const idx=this._xy2idx(x,y);
 		if(this._revealMap[idx]) return;
 		if(this._bombMap[idx]){
-			this._revealMap[idx]=true;
+			this._revealMap[idx]=1;
 			return this.onBoom(x,y);
 		}
 		
