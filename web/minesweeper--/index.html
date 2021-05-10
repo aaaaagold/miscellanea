@@ -54,7 +54,6 @@ e.g. ?w=20&h=20&c=40</pre></div></div>
 "use strict";
 (()=>{
 const args={}; location.search.slice(1).split("&").forEach(x=>{
-	if(x==='') continue;
 	if(x.indexOf('=')===-1) args[x]=true;
 	else{
 		const kv=x.split('=');
