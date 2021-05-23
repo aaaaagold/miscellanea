@@ -433,7 +433,7 @@ if(puz8 && q.w===3 && q.h===3){
 	const offset_step  =(puz8.strt_step  ()-puz8.strt())>>2;
 	// ppp.nearBd: 0 is empty
 	let fstat=0; for(let x=f.length;x--;) fstat=fstat*10+(f[x]===0?9:f[x]);
-	puz8.build(fstat);
+	if(!mark[s_key]) puz8.build(fstat);
 	for(let k=0,x=0,xs=buf.length;x!==xs;++k,x+=offset_1){
 		if(buf[x+offset_act]) mark[k]={
 			next:buf[x+offset_before],
