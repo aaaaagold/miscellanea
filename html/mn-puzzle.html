@@ -29,6 +29,18 @@ div{color:#FFFFFF;}
 </style>
 <script>
 "use strict";
+// load wasm
+fetch('puz8.wasm').then(response =>
+	WebAssembly.instantiateStreaming(response)
+).then(result =>{
+	console.log('res',result);
+	const m=result.instance.exports;
+	console.log('export',window.puz8=m);
+	window.sss=new Int32Array(m.memory.buffer,m.strt(),(m.ende()-m.strt())>>2);
+});
+</script>
+<script>
+"use strict";
 
 let q={};
 
@@ -413,6 +425,23 @@ ppp.bfs=(s,f)=>{
 	
 	let f_key=ppp.arr2key(f),s_key=ppp.arr2key(s);
 	let mark=ppp.bfscache[qc]; if(mark==undefined) mark=[]; mark.length=ppp.factorial(f.length);
+if(puz8 && q.w===3 && q.h===3){
+	const buf=new Int32Array(puz8.memory.buffer, puz8.strt(), (puz8.ende()-puz8.strt())>>2);
+	const offset_1     =(puz8.strt1      ()-puz8.strt())>>2;
+	const offset_act   =(puz8.strt_act   ()-puz8.strt())>>2;
+	const offset_before=(puz8.strt_before()-puz8.strt())>>2;
+	const offset_step  =(puz8.strt_step  ()-puz8.strt())>>2;
+	// ppp.nearBd: 0 is empty
+	let fstat=0; for(let x=f.length;x--;) fstat=fstat*10+(f[x]===0?9:f[x]);
+	puz8.build(fstat);
+	for(let k=0,x=0,xs=buf.length;x!==xs;++k,x+=offset_1){
+		if(buf[x+offset_act]) mark[k]={
+			next:buf[x+offset_before],
+			move:String.fromCharCode(buf[x+offset_act]),
+		};
+	}
+	mark[f_key]={next:null,move:null};
+}else{
 	let added=[]; added.length=mark.length; added[f_key]=0;
 	let queue=[];
 	queue.push({"next":null,"curr":f_key,"move":null});
@@ -431,6 +460,7 @@ ppp.bfs=(s,f)=>{
 			queue.push({"next":currKey,"curr":ppp.arr2key(tmp["bd"]),"move":tmp["move"]});
 		}
 	}
+}
 	ppp.bfscache[qc]=mark;
 	return ppp.buildPath(qc,s,rfl_info_map);
 };
@@ -482,7 +512,7 @@ ppp.printSol=()=>{
 	let packinfo=ppp.packinfo(iarr);
 	let ipack=ppp.pack(iarr,packinfo);
 	let gpack=ppp.pack(garr,packinfo);
-	let res=ppp.bfs(ipack,gpack,packinfo);
+	let res=ppp.bfs(ipack,gpack,packinfo); // ====
 	
 	let s=q.sz<11?res["move"].toString():":(";
 	ppp.setOutput(s.length?res["move"].toString():"(no moves)");
