@@ -159,7 +159,7 @@ d.ge("confirm-all").onclick=_=>{
 		for(let x=0;x!==txt.length;++x){
 			const t=txt[x].split('\n');
 			list.push({code:101,indent:0,parameters:["",0,0,2],});
-			for(let z=0;z!==t.length;++z) list.push({code:401,indent:0,parameters:[txt[x]],});
+			for(let z=0;z!==t.length;++z) list.push({code:401,indent:0,parameters:[t[z]],});
 		}
 		list.push({code:0,indent:0,parameters:[]});
 		const data="data:application/json;charset=UTF-8,"+encodeURIComponent(JSON.stringify(newDataMap));
