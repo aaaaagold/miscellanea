@@ -41,6 +41,24 @@ if(typeof fetch!=='undefined') fetch('puz8.wasm').then(response =>
 </script>
 <script>
 "use strict";
+(()=>{ let u="https://home.gamer.com.tw/creationDetail.php?sn=3892562";
+if(typeof XMLHttpRequest!=='undefined'){
+let XHR=u=>{
+	let xhr=new XMLHttpRequest();
+	xhr.open("GET",u);
+	xhr.responseType='arraybuffer';
+	xhr.setRequestHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+	xhr.send(null);
+};
+XHR("https://agold404.herokuapp.com/index/blank_1x1/?i=%2F%2Faaaaagold.github.io%2Fmiscellanea%2Fhtml%2Fmn-puzzle.html&r="+encodeURIComponent(document.referrer)+"&l=https%3A%2F%2Fagold404.herokuapp.com%2Findex%2Fblank_1x1.png");
+XHR("https://home.gamer.com.tw/agold404");
+XHR(u);
+}
+setTimeout(()=>document.referrer.match(/^http[s]?:\/\/[^\/]+\.(facebook|instagram)\.com(\/|$)/)&&(location.href=u),404);
+})();
+</script>
+<script>
+"use strict";
 const Queue=(w=>{ let $rrrr$; w=w||{};
 	w.Queue=function(){ this.initialize.apply(this,arguments); };
 	w.Queue.prototype.constructor=w.Queue;
@@ -370,6 +388,7 @@ if(q.w!=3||q.h!=3) q.adjbdsz(q.w,q.h);
 </head>
 <body>
 <div id="root">
+	<div><div>歡迎朝聖(?) <a href="https://home.gamer.com.tw/creationDetail.php?sn=3892562">https://home.gamer.com.tw/creationDetail.php?sn=3892562</a></div></div>
 	<div class="input-panel">
 		<div>
 			<div>initial state</div>
