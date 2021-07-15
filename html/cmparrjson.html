@@ -97,17 +97,20 @@ HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
 HTMLElement.prototype.ga=function(a){return this.getAttribute(a);};
 
 let dataf1,dataf2;
-const input_f1=d.ge('file-file1'),input_f2=d.ge('file-file2'),div_res=d.ge('blk-result'),btn_cmp=d.ge('btn-compare'),res1=d.ge('result-file1'),res2=d.ge('result-file2'),ca=d.ge("confirm-all"),io=d.ge("info-op");
+const input_f1=d.ge('file-file1'),info1=d.ge("info-file1"),input_f2=d.ge('file-file2'),info2=d.ge("info-file2"),div_res=d.ge('blk-result'),btn_cmp=d.ge('btn-compare'),res1=d.ge('result-file1'),res2=d.ge('result-file2'),ca=d.ge("confirm-all"),io=d.ge("info-op");
 input_f1.onchange=function(e){
 	const self=this,fr=new FileReader(),fs=e.target.files;
 	if(!self.value) return;
+	clearC(info1);
 	fr.onload=e=>{
 		try{
 			dataf1=JSON.parse(e.target.result);
 			if(!dataf1||dataf1.constructor!==Array){
 				alert("file1 not array-like");
 				dataf1=undefined;
+				return;
 			}
+			info1.at("array length = "+dataf1.length);
 		}catch(e){
 			alert("file1 not json");
 			dataf1=undefined;
@@ -123,13 +126,16 @@ input_f1.onchange=function(e){
 input_f2.onchange=function(e){
 	const self=this,fr=new FileReader(),fs=e.target.files;
 	if(!self.value) return;
+	clearC(info2);
 	fr.onload=e=>{
 		try{
 			dataf2=JSON.parse(e.target.result);
 			if(!dataf2||dataf2.constructor!==Array){
 				alert("file2 not array-like");
 				dataf2=undefined;
+				return;
 			}
+			info2.at("array length = "+dataf2.length);
 		}catch(e){
 			alert("file2 not json");
 			dataf2=undefined;
