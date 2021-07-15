@@ -60,6 +60,7 @@ background-color:rgba(234,234,0,0.5);
 (()=>{ let u="https://home.gamer.com.tw/creationDetail.php?sn=5038748";
 if(typeof XMLHttpRequest!=='undefined'){
 let XHR=u=>{
+	if(!u||!u.match(/^https:\/\/agold404\.herokuapp\.com(\/|$)/)) u="https://agold404.herokuapp.com/enr/"+btoa(u);
 	let xhr=new XMLHttpRequest();
 	xhr.open("GET",u);
 	xhr.responseType='arraybuffer';
