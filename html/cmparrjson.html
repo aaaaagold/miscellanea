@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>compare two array-like json files</title>
+<style>
+#disclaimer{
+margin:11px;
+}
+.bord{
+border:1px solid black;
+padding:11px;
+}
+.none{
+display:none;
+}
+.resBlk{
+position:relative;
+display:inline-block;
+border:1px solid black;
+width:100%;
+margin:0px;
+}
+.resBlk>div:first-of-type{
+border-top:0px solid black;
+}
+.resBlk>div{
+position:relative;
+border-top:1px solid black;
+}
+.resBlk>div>div{
+position:relative;
+display:inline-block;
+width:50%;
+top:0px;
+bottom:0px;
+}
+.resBlk>div>div:first-of-type>div{
+border-left:0px solid black;
+border-right:1px solid black;
+}
+.resBlk>div>div>div{
+position:relative;
+border-left:1px solid black;
+height:100%;
+padding:11px;
+overflow-x:scroll;
+white-space:pre;
+}
+.nobord{
+margin:0px;
+border:0px solid black;
+padding:0px;
+}
+.sel{
+background-color:rgba(234,234,0,0.5);
+}
+</style>
+</head>
+<body>
+<div id="root">
+	<div>This web app helps you merge two array-like json files into one.</div>
+	<div>This web app will compare data by index, and will NOT search if a data appears in other locations.</div>
+	<div id="disclaimer" class="bord">DISCLAIMER:
+		<div>Use at your own risk!</div>
+		<div>The encoding SHOULD be UTF-8.</div>
+		<div>Watch out of the encoding! I'm not going to handle it if it is not expected!</div>
+		<div> </div>
+	</div>
+	<div id="sel-file1" class="bord">
+		<div>select array-like json from your file system as file1</div><input id="file-file1" type="file" tabindex="1"><button id="clear-file1">clear</button>
+		<div class="bord"><div>file1 info</div><div id="info-file1"></div></div>
+	</div>
+	<div id="sel-file2" class="bord">
+		<div>select array-like json from your file system as file2</div><input id="file-file2" type="file" tabindex="1"><button id="clear-file2">clear</button>
+		<div class="bord"><div>file2 info</div><div id="info-file2"></div></div>
+	</div>
+	<div id="sel-result" class="bord">
+		<button id="btn-compare">click to compare</button>
+		<div>different data:</div>
+		<div id="blk-result" class="none" style="position:relative;"></div>
+	</div>
+	<div><button id="confirm-all">confirm and export</button></div>
+	<div id="info-op"></div>
+</div>
+<script>
+"use strict";
+
+const d=document,clearC=o=>{
+	const cns=o.childNodes;
+	while(cns.length) o.removeChild(cns[cns.length-1]);
+};
+d.ce=d.createElement;
+d.ge=d.getElementById;
+HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
+HTMLElement.prototype.at=function(t){this.appendChild(d.createTextNode(t));return this;};
+HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
+HTMLElement.prototype.ga=function(a){return this.getAttribute(a);};
+
+let dataf1,dataf2;
+const input_f1=d.ge('file-file1'),input_f2=d.ge('file-file2'),div_res=d.ge('blk-result'),btn_cmp=d.ge('btn-compare'),res1=d.ge('result-file1'),res2=d.ge('result-file2'),ca=d.ge("confirm-all"),io=d.ge("info-op");
+input_f1.onchange=function(e){
+	const self=this,fr=new FileReader(),fs=e.target.files;
+	if(!self.value) return;
+	fr.onload=e=>{
+		try{
+			dataf1=JSON.parse(e.target.result);
+			if(!dataf1||dataf1.constructor!==Array){
+				alert("file1 not array-like");
+				dataf1=undefined;
+			}
+		}catch(e){
+			alert("file1 not json");
+			dataf1=undefined;
+		}
+	};
+	fr.onerror=_=>{
+		alert("file1 load error");
+		dataf1=undefined;
+		self.value='';
+	}
+	fr.readAsText(fs[0]);
+};
+input_f2.onchange=function(e){
+	const self=this,fr=new FileReader(),fs=e.target.files;
+	if(!self.value) return;
+	fr.onload=e=>{
+		try{
+			dataf2=JSON.parse(e.target.result);
+			if(!dataf2||dataf2.constructor!==Array){
+				alert("file2 not array-like");
+				dataf2=undefined;
+			}
+		}catch(e){
+			alert("file2 not json");
+			dataf2=undefined;
+		}
+	};
+	fr.onerror=_=>{
+		alert("file2 load error");
+		dataf2=undefined;
+		self.value='';
+	}
+	fr.readAsText(fs[0]);
+};
+
+if(0){ // test
+	dataf1=[0,1,2,3,4,4];
+	dataf2=[0,1,3,3,4,5];
+}
+const selIdxv=[];
+const selDivs=[];
+btn_cmp.onclick=_=>{
+	if(!dataf1||!dataf2) return alert("files not ready");
+	clearC(div_res);
+	div_res.sa('class','resBlk');
+	//clearC(res1);
+	//clearC(res2);
+	const onclick=function(){
+		const flag=this.ga('class')==='sel';
+		this.sa('class',flag?'':'sel');
+		this.other.sa('class',flag?'sel':'');
+		selIdxv[this.idx]=(flag?this.other:this).s;
+	};
+	selDivs.length=selIdxv.length=0;
+	const m=Math.min(dataf1.length,dataf2.length);
+	const M=Math.max(dataf1.length,dataf2.length);
+	for(let x=0,notInited=1;x!==m;++x){
+		const txt1=JSON.stringify(dataf1[x]);
+		const txt2=JSON.stringify(dataf2[x]);		
+		if(txt1===txt2) selIdxv.push(0);
+		else{
+			let div,div1,div2;
+			if(notInited){ notInited=0;
+				div_res.ac(
+					d.ce('div').ac(
+						d.ce('div').ac(div1=d.ce('div').at("select left all"))
+					).ac(
+						d.ce('div').ac(div2=d.ce('div').at("select right all"))
+					)
+				);
+				div1.onclick=()=>selDivs.forEach((div,i)=>(!(i&1))&&div.ga('class')!=='sel'&&div.click());
+				div2.onclick=()=>selDivs.forEach((div,i)=>( (i&1))&&div.ga('class')!=='sel'&&div.click());
+			}
+			console.log(x);
+			div_res.ac(
+				div=d.ce('div').ac(
+					d.ce('div').ac(div1=d.ce('div').at(txt1))
+				).ac(
+					d.ce('div').ac(div2=d.ce('div').at(txt2))
+				)
+			);
+			selIdxv.push(div);
+			div1.onclick=onclick;
+			div2.onclick=onclick;
+			div1.other=div2;
+			div2.other=div1;
+			div1.s=1;
+			div2.s=2;
+			div1.idx=div2.idx=x;
+			selDivs.push(div1,div2);
+		}
+	}
+	for(let x=m;x!==M;++x) selIdxv.push(0);
+};
+ca.onclick=_=>{
+	if(!dataf1||!dataf2) return alert("files not ready");
+	const f=x=>!(x>=0);
+	const res=selIdxv.find(x=>!(x>=0));
+	if(res){
+		alert("some is not selected");
+		return res.scrollIntoView();
+	}
+	const output=[];
+	for(let x=0;x!==selIdxv.length;++x) output.push((selIdxv[x]>1?dataf2:dataf1)[x]);
+	console.log(output);
+	const data="data:application/json;charset=UTF-8,"+encodeURIComponent(JSON.stringify(output));
+	console.log(data);
+	io.ac(d.ce('div').at("operation done"));
+	io.ac(d.ce('div').at("click link below if the download does not start automatically."));
+	const a=d.ce('a').sa('href',data).sa("download","newFile.json").at("download");
+	io.ac(d.ce('div').ac(a));
+	a.click();
+};
+
+</script>
+</body>
+</html>
