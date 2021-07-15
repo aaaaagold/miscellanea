@@ -97,7 +97,15 @@ HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
 HTMLElement.prototype.ga=function(a){return this.getAttribute(a);};
 
 let dataf1,dataf2;
-const input_f1=d.ge('file-file1'),info1=d.ge("info-file1"),input_f2=d.ge('file-file2'),info2=d.ge("info-file2"),div_res=d.ge('blk-result'),btn_cmp=d.ge('btn-compare'),res1=d.ge('result-file1'),res2=d.ge('result-file2'),ca=d.ge("confirm-all"),io=d.ge("info-op");
+const input_f1=d.ge('file-file1'),info1=d.ge("info-file1"),cf1=d.ge("clear-file1"),input_f2=d.ge('file-file2'),info2=d.ge("info-file2"),cf2=d.ge("clear-file2"),div_res=d.ge('blk-result'),btn_cmp=d.ge('btn-compare'),res1=d.ge('result-file1'),res2=d.ge('result-file2'),ca=d.ge("confirm-all"),io=d.ge("info-op");
+cf1.onclick=_=>{
+	input_f1.value='';
+	clearC(info1);
+};
+cf2.onclick=_=>{
+	input_f2.value='';
+	clearC(info2);
+};
 input_f1.onchange=function(e){
 	const self=this,fr=new FileReader(),fs=e.target.files;
 	if(!self.value) return;
