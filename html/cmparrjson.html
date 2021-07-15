@@ -224,8 +224,10 @@ ca.onclick=_=>{
 		alert("some is not selected");
 		return res.scrollIntoView();
 	}
-	const output=[];
-	for(let x=0;x!==selIdxv.length;++x) output.push((selIdxv[x]>1?dataf2:dataf1)[x]);
+	const output=[],m=Math.min(dataf1.length,dataf2.length),M=Math.max(dataf1.length,dataf2.length);
+	for(let x=0;x!==m;++x) output.push((selIdxv[x]>1?dataf2:dataf1)[x]);
+	if(dataf1.length<dataf2.length) for(let x=m;x!==M;++x) output.push(dataf2[x]);
+	else for(let x=m;x!==M;++x) output.push(dataf1[x]);
 	console.log(output);
 	const data="data:application/json;charset=UTF-8,"+encodeURIComponent(JSON.stringify(output));
 	console.log(data);
