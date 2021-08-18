@@ -140,7 +140,7 @@ void makedp()
 	q.pop();
 	int ori=v,convori=convert(v);
 	int nine=findnine(v),tmp;
-	if(nine!=100&&nine!=100000&&nine!=100000000) // right
+	if(nine!=100&&nine!=100000&&nine!=100000000) // left
 	{
 		tmp=(v/(nine*10))%10;
 		v-=nine*9;
@@ -150,37 +150,20 @@ void makedp()
 		order=convert(v);
 		if(!sss[order].act)
 		{
-			sss[order].act=righ;
+			sss[order].act=left;
 			sss[order].before=convori;
 			sss[order].step=sss[convori].step+1;
 			q.push(v);
 		}
 		v=ori;
 	}
-	if(nine<1000000) // down
+	if(nine<1000000) // uppp
 	{
 		tmp=(v/(nine*1000))%10;
 		v-=nine*9;
 		v+=nine*tmp;
 		v-=(nine*1000)*tmp;
 		v+=(nine*1000)*9;
-		order=convert(v);
-		if(!sss[order].act)
-		{
-			sss[order].act=down;
-			sss[order].before=convori;
-			sss[order].step=sss[convori].step+1;
-			q.push(v);
-		}
-		v=ori;
-	}
-	if(nine>100) // up
-	{
-		tmp=(v/(nine/1000))%10;
-		v-=nine*9;
-		v+=nine*tmp;
-		v-=(nine/1000)*tmp;
-		v+=(nine/1000)*9;
 		order=convert(v);
 		if(!sss[order].act)
 		{
@@ -191,7 +174,24 @@ void makedp()
 		}
 		v=ori;
 	}
-	if(nine!=1&&nine!=1000&&nine!=1000000) // left
+	if(nine>100) // down
+	{
+		tmp=(v/(nine/1000))%10;
+		v-=nine*9;
+		v+=nine*tmp;
+		v-=(nine/1000)*tmp;
+		v+=(nine/1000)*9;
+		order=convert(v);
+		if(!sss[order].act)
+		{
+			sss[order].act=down;
+			sss[order].before=convori;
+			sss[order].step=sss[convori].step+1;
+			q.push(v);
+		}
+		v=ori;
+	}
+	if(nine!=1&&nine!=1000&&nine!=1000000) // righ
 	{
 		tmp=(v/(nine/10))%10;
 		v-=nine*9;
@@ -201,7 +201,7 @@ void makedp()
 		order=convert(v);
 		if(!sss[order].act)
 		{
-			sss[order].act=left;
+			sss[order].act=righ;
 			sss[order].before=convori;
 			sss[order].step=sss[convori].step+1;
 			q.push(v);
