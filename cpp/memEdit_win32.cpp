@@ -452,6 +452,184 @@ public:
 	{
 		attach_qv=1;
 	}
+	void doCmd(const string &cmd)
+	{
+		if(!cmd.size()||cmd[0]=='#') return;
+		stringstream ss; ss<<cmd;
+		string act; ss>>act;
+		if(act=="help"){
+			const char *const addrList="[ ADDR [ ADDR ] ... ]";
+			printf("commands:\n");
+			printf("  %-7s\n",                           "help");
+			printf("    %-7s\n","print this");
+			printf("  %-7s\n",                           "quiet");
+			printf("    %-7s\n","do not repeat what you are doing");
+			printf("  %-7s\n",                           "verbose");
+			printf("    %-7s\n","repeat what you are doing");
+			printf("  %-7s  %-7s\n",                     "view",addrList);
+			printf("    %-7s\n","view (address,value) pair");
+			printf("    %-7s\n","default: current stack");
+			printf("  %-7s\n",                           "update");
+			printf("    %-7s\n","update cached (address,value) pair from 'ns' or 'rs'");
+			printf("  %-7s  %-7s\n",                     "updateview",addrList);
+			printf("    %-7s\n","combined cmd of update and view, 'uv' in short");
+			printf("    %-7s\n","default: current stack");
+			printf("  %-7s  %-7s  %-7s\n",               "ns","TYPE","VALUE");
+			printf("    %-7s\n","new search");
+			printf("    %-7s\n","write result to current stack");
+			printf("  %-7s  %-7s  %-7s\n",               "rs","TYPE","VALUE");
+			printf("    %-7s\n","re-search (from last result)");
+			printf("    %-7s\n","write result to current stack");
+			printf("  %-7s  %-7s  %-7s  %-7s  %-7s\n",   "e","TYPE","LOC","METHOD","expression_without_quote");
+			printf("    %-7s\n","edit memory");
+			printf("  %-7s  %-7s\n",                     "a",addrList);
+			printf("    %-7s\n","add ADDRs to current stack");
+			printf("  %-7s\n",                           "clear");
+			printf("    %-7s\n","clear current stack");
+			printf("  %-7s\n",                           "push");
+			printf("    %-7s\n","push current stack to stack list");
+			printf("  %-7s\n",                           "ls");
+			printf("    %-7s\n","list size");
+			printf("  %-7s\n",                           "la");
+			printf("    %-7s\n","list all stack size");
+			printf("  %-7s\n",                           "sc");
+			printf("    %-7s\n","view stack counts");
+			printf("  %-7s\n",                           "ss");
+			printf("    %-7s\n","select stack, this will overwrite current stack");
+			printf("  %-7s  %-7s\n",                     "delete","int_number");
+			printf("    %-7s\n","delete a stack in stack list (index starts from 0)");
+			printf("\n");
+			printf("  %-7s can be:\n","ADDR");
+			printf("    %-7s\n","0x... except 0x0..0");
+			printf("  %-7s can be:\n","TYPE");
+			printf("    %-7s\n","int");
+			printf("  %-7s can be:\n","LOC");
+			printf("    %-7s\n","ADDR");
+			printf("    %-7s\n","ALL");
+			printf("  %-7s can be:\n","METHOD");
+			printf("    %-7s\n","a(bsolute)");
+			printf("    %-7s\n","d(elta)");
+		}else if(act=="quiet"){
+			printf("switch to quiet mode\n");
+			attach_qv=0;
+		}else if(act=="verbose"){
+			printf("switch to verbose mode\n");
+			attach_qv=1;
+		}else if(act=="v" || act=="view"){
+			if(attach_qv) printf("view (ptrs,cached value)s\n");
+			attach_view(ss);
+		}else if(act=="u" || act=="update"){
+			if(attach_qv) printf("update cached values\n");
+			ptrv=hdl.search_int_re(ptrv,0,1);
+		}else if(act=="uv" || act=="updateview"){
+			if(attach_qv) printf("update and view\n");
+			ptrv=hdl.search_int_re(ptrv,0,1);
+			attach_view(ss);
+		}else if(act=="ns"){
+			if(attach_qv) printf("new search\n");
+			string type; ss>>type;
+			if(type=="int")
+			{
+				string val; ss>>val;
+				int tmp;
+				if(sscanf(val.c_str(),"%d",&tmp)==1)
+				{
+					// ptrv_prev=ptrv;
+					ptrv=hdl.search_int(tmp);
+				}
+				else  attach_inerr(val);
+			}else printf("unknown %s type: %s\n","search",type.c_str());
+		}else if(act=="rs"){
+			if(attach_qv) printf("re-search\n");
+			string type; ss>>type;
+			if(type=="int")
+			{
+				string val; ss>>val;
+				int tmp;
+				if(sscanf(val.c_str(),"%d",&tmp)==1)
+				{
+					// ptrv_prev=ptrv;
+					ptrv=hdl.search_int_re(ptrv,tmp);
+				}
+				else  attach_inerr(val);
+			}else printf("unknown %s type: %s\n","search",type.c_str());
+		}else if(act=="e"){
+			if(attach_qv) printf("edit\n");
+			string type; ss>>type;
+			if(type=="int")
+			{
+				string loc,method,exp1,op,exp2; ss>>loc>>method;
+				int *ptr,tmp;
+				bool padding=0,err=0;
+				if(method=="a" || method=="absolute") padding=0;
+				else if(method=="d" || method=="delta") padding=1;
+				else err=1;
+				vector<int> val=exp::parseInt(ss);
+				if(err) attach_inerr(loc+" "+method);
+				else if(prefixEq("0x",loc) && sscanf(loc.c_str(),"0x%p",&ptr)==1 && val.size()!=0)
+				{
+					tmp=val[0];
+					if(padding) tmp+=hdl.search_int_re(vector<pv<int> >(1,pv<int>(ptr,0)),0,1)[0].second;
+					hdl.edit_int(ptr,tmp);
+				}
+				else if((loc=="A" || loc=="ALL") && val.size()!=0)
+				{
+					tmp=val[0];
+					if(padding) ptrv=hdl.search_int_re(ptrv,0,1);
+					for(size_t x=ptrv.size();x--;) hdl.edit_int(ptrv[x].first,padding?ptrv[x].second+tmp:tmp);
+				}
+				else attach_inerr(string()+"loc err  or  exp err: "+ss.str());
+			}else printf("unknown %s type: %s\n","edit",type.c_str());
+		}else if(act=="a"){
+			if(attach_qv) printf("add addr\n");
+			vector<pv<int> > tmpv=attach_parseAddrList(ss);
+			sort(tmpv.begin(),tmpv.end());
+			if(tmpv.size()>0 && tmpv[0].first!=NULL ) tmpv=hdl.search_int_re(tmpv,0,1);
+			else tmpv.resize(0);
+			printf("add %u addresses\n",(unsigned)(tmpv.size()));
+			for(size_t x=0,xs=tmpv.size();x<xs;x++) ptrv.push_back(tmpv[x]);
+			sort(ptrv.begin(),ptrv.end());
+			printf("current stack size: %u\n",(unsigned)(ptrv.size()));
+		}else if(act=="clear"){
+			if(attach_qv) printf("clear current\n");
+			ptrv.resize(0);
+		}else if(act=="push"){
+			if(attach_qv) printf("push stack to list\n");
+			ptrv_prev.push_back(ptrv);
+		}else if(act=="ls"){
+			if(attach_qv) printf("list size\n");
+			printf("number available: [0,%u)\n", (unsigned)(ptrv_prev.size()) );
+		}else if(act=="la"){
+			if(attach_qv) printf("list all stack size\n");
+			printf("in list\n");
+			for(unsigned x=0,xs=ptrv_prev.size();x!=xs;x++)
+				printf("%11u: %u\n" ,x ,(unsigned)(ptrv_prev[x].size()) );
+			printf("current: %u\n",(unsigned)(ptrv.size()));
+		}else if(act=="ss"){
+			if(attach_qv) printf("select from stack\n");
+			string val; ss>>val;
+			unsigned n;
+			if(sscanf(val.c_str(),"%u",&n)==1 && n<ptrv_prev.size()) ptrv=ptrv_prev[n];
+			else attach_inerr(val);
+		}else if(act=="delete"){
+			if(attach_qv) printf("del\n");
+			string val; ss>>val;
+			unsigned n;
+			if(sscanf(val.c_str(),"%u",&n)==1 && n<ptrv_prev.size())
+			{
+				for(size_t x=n,xs=ptrv_prev.size();++x<xs;)
+					ptrv_prev[x-1]=std::move(ptrv_prev[x]);
+				ptrv_prev.pop_back();
+			}
+			else attach_inerr(val);
+		}
+		else printf("unknown command: %s\n try help\n",act.c_str());
+	}
+	void doCmds(const char *const cmds[])
+	{
+		// NULL-terminate
+		for(unsigned x=0;cmds[x];++x) doCmd(cmds[x]);
+	}
 	bool attach(ull pid) // includes cli
 	{
 		hdl.attach(pid);
@@ -466,176 +644,7 @@ public:
 				else if(cmd[0]=='N') break;
 				else return 0;
 			}
-			if(cmd.size()==0) continue;
-			stringstream ss; ss<<cmd;
-			string act; ss>>act;
-			if(act=="help"){
-				const char *const addrList="[ ADDR [ ADDR ] ... ]";
-				printf("commands:\n");
-				printf("  %-7s\n",                           "help");
-				printf("    %-7s\n","print this");
-				printf("  %-7s\n",                           "quiet");
-				printf("    %-7s\n","do not repeat what you are doing");
-				printf("  %-7s\n",                           "verbose");
-				printf("    %-7s\n","repeat what you are doing");
-				printf("  %-7s  %-7s\n",                     "view",addrList);
-				printf("    %-7s\n","view (address,value) pair");
-				printf("    %-7s\n","default: current stack");
-				printf("  %-7s\n",                           "update");
-				printf("    %-7s\n","update cached (address,value) pair from 'ns' or 'rs'");
-				printf("  %-7s  %-7s\n",                     "updateview",addrList);
-				printf("    %-7s\n","combined cmd of update and view, 'uv' in short");
-				printf("    %-7s\n","default: current stack");
-				printf("  %-7s  %-7s  %-7s\n",               "ns","TYPE","VALUE");
-				printf("    %-7s\n","new search");
-				printf("    %-7s\n","write result to current stack");
-				printf("  %-7s  %-7s  %-7s\n",               "rs","TYPE","VALUE");
-				printf("    %-7s\n","re-search (from last result)");
-				printf("    %-7s\n","write result to current stack");
-				printf("  %-7s  %-7s  %-7s  %-7s  %-7s\n",   "e","TYPE","LOC","METHOD","expression_without_quote");
-				printf("    %-7s\n","edit memory");
-				printf("  %-7s  %-7s\n",                     "a",addrList);
-				printf("    %-7s\n","add ADDRs to current stack");
-				printf("  %-7s\n",                           "clear");
-				printf("    %-7s\n","clear current stack");
-				printf("  %-7s\n",                           "push");
-				printf("    %-7s\n","push current stack to stack list");
-				printf("  %-7s\n",                           "ls");
-				printf("    %-7s\n","list size");
-				printf("  %-7s\n",                           "la");
-				printf("    %-7s\n","list all stack size");
-				printf("  %-7s\n",                           "sc");
-				printf("    %-7s\n","view stack counts");
-				printf("  %-7s\n",                           "ss");
-				printf("    %-7s\n","select stack, this will overwrite current stack");
-				printf("  %-7s  %-7s\n",                     "delete","int_number");
-				printf("    %-7s\n","delete a stack in stack list (index starts from 0)");
-				printf("\n");
-				printf("  %-7s can be:\n","ADDR");
-				printf("    %-7s\n","0x... except 0x0..0");
-				printf("  %-7s can be:\n","TYPE");
-				printf("    %-7s\n","int");
-				printf("  %-7s can be:\n","LOC");
-				printf("    %-7s\n","ADDR");
-				printf("    %-7s\n","ALL");
-				printf("  %-7s can be:\n","METHOD");
-				printf("    %-7s\n","a(bsolute)");
-				printf("    %-7s\n","d(elta)");
-			}else if(act=="quiet"){
-				printf("switch to quiet mode\n");
-				attach_qv=0;
-			}else if(act=="verbose"){
-				printf("switch to verbose mode\n");
-				attach_qv=1;
-			}else if(act=="v" || act=="view"){
-				if(attach_qv) printf("view (ptrs,cached value)s\n");
-				attach_view(ss);
-			}else if(act=="u" || act=="update"){
-				if(attach_qv) printf("update cached values\n");
-				ptrv=hdl.search_int_re(ptrv,0,1);
-			}else if(act=="uv" || act=="updateview"){
-				if(attach_qv) printf("update and view\n");
-				ptrv=hdl.search_int_re(ptrv,0,1);
-				attach_view(ss);
-			}else if(act=="ns"){
-				if(attach_qv) printf("new search\n");
-				string type; ss>>type;
-				if(type=="int")
-				{
-					string val; ss>>val;
-					int tmp;
-					if(sscanf(val.c_str(),"%d",&tmp)==1)
-					{
-						// ptrv_prev=ptrv;
-						ptrv=hdl.search_int(tmp);
-					}
-					else  attach_inerr(val);
-				}else printf("unknown %s type: %s\n","search",type.c_str());
-			}else if(act=="rs"){
-				if(attach_qv) printf("re-search\n");
-				string type; ss>>type;
-				if(type=="int")
-				{
-					string val; ss>>val;
-					int tmp;
-					if(sscanf(val.c_str(),"%d",&tmp)==1)
-					{
-						// ptrv_prev=ptrv;
-						ptrv=hdl.search_int_re(ptrv,tmp);
-					}
-					else  attach_inerr(val);
-				}else printf("unknown %s type: %s\n","search",type.c_str());
-			}else if(act=="e"){
-				if(attach_qv) printf("edit\n");
-				string type; ss>>type;
-				if(type=="int")
-				{
-					string loc,method,exp1,op,exp2; ss>>loc>>method;
-					int *ptr,tmp;
-					bool padding=0,err=0;
-					if(method=="a" || method=="absolute") padding=0;
-					else if(method=="d" || method=="delta") padding=1;
-					else err=1;
-					vector<int> val=exp::parseInt(ss);
-					if(err) attach_inerr(loc+" "+method);
-					else if(prefixEq("0x",loc) && sscanf(loc.c_str(),"0x%p",&ptr)==1 && val.size()!=0)
-					{
-						tmp=val[0];
-						if(padding) tmp+=hdl.search_int_re(vector<pv<int> >(1,pv<int>(ptr,0)),0,1)[0].second;
-						hdl.edit_int(ptr,tmp);
-					}
-					else if((loc=="A" || loc=="ALL") && val.size()!=0)
-					{
-						tmp=val[0];
-						if(padding) ptrv=hdl.search_int_re(ptrv,0,1);
-						for(size_t x=ptrv.size();x--;) hdl.edit_int(ptrv[x].first,padding?ptrv[x].second+tmp:tmp);
-					}
-					else attach_inerr(string()+"loc err  or  exp err: "+ss.str());
-				}else printf("unknown %s type: %s\n","edit",type.c_str());
-			}else if(act=="a"){
-				if(attach_qv) printf("add addr\n");
-				vector<pv<int> > tmpv=attach_parseAddrList(ss);
-				sort(tmpv.begin(),tmpv.end());
-				if(tmpv.size()>0 && tmpv[0].first!=NULL ) tmpv=hdl.search_int_re(tmpv,0,1);
-				else tmpv.resize(0);
-				printf("add %u addresses\n",(unsigned)(tmpv.size()));
-				for(size_t x=0,xs=tmpv.size();x<xs;x++) ptrv.push_back(tmpv[x]);
-				sort(ptrv.begin(),ptrv.end());
-				printf("current stack size: %u\n",(unsigned)(ptrv.size()));
-			}else if(act=="clear"){
-				if(attach_qv) printf("clear current\n");
-				ptrv.resize(0);
-			}else if(act=="push"){
-				if(attach_qv) printf("push stack to list\n");
-				ptrv_prev.push_back(ptrv);
-			}else if(act=="ls"){
-				if(attach_qv) printf("list size\n");
-				printf("number available: [0,%u)\n", (unsigned)(ptrv_prev.size()) );
-			}else if(act=="la"){
-				if(attach_qv) printf("list all stack size\n");
-				printf("in list\n");
-				for(unsigned x=0,xs=ptrv_prev.size();x!=xs;x++)
-					printf("%11u: %u\n" ,x ,(unsigned)(ptrv_prev[x].size()) );
-				printf("current: %u\n",(unsigned)(ptrv.size()));
-			}else if(act=="ss"){
-				if(attach_qv) printf("select from stack\n");
-				string val; ss>>val;
-				unsigned n;
-				if(sscanf(val.c_str(),"%u",&n)==1 && n<ptrv_prev.size()) ptrv=ptrv_prev[n];
-				else attach_inerr(val);
-			}else if(act=="delete"){
-				if(attach_qv) printf("del\n");
-				string val; ss>>val;
-				unsigned n;
-				if(sscanf(val.c_str(),"%u",&n)==1 && n<ptrv_prev.size())
-				{
-					for(size_t x=n,xs=ptrv_prev.size();++x<xs;)
-						ptrv_prev[x-1]=std::move(ptrv_prev[x]);
-					ptrv_prev.pop_back();
-				}
-				else attach_inerr(val);
-			}
-			else printf("unknown command: %s\n try help\n",act.c_str());
+			doCmd(cmd);
 		}
 		return 0;
 	}
