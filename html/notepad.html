@@ -1,0 +1,315 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>notepad.html</title>
+<style>
+*{font-family:monospace;}
+body{position:absolute;width:100%;height:100%;margin:0px;padding:0px;border:0px solid black;background-color:#000000;color:#FFFFFF;font-size:16px;}
+.CC>*{text-align:center;}
+.maxW{width:100%;}
+.maxH{height:100%;}
+.maxWH{width:100%;height:100%;}
+.padSubgroup{padding:4px;}
+.btm{position:absolute;bottom:0px;}
+.childEmphasize>*{margin:11px;padding:11px;background-color:rgba(111,111,111,0.5);}
+.childEmphasize>div>*{margin:1px;padding-left:23px;}
+.childEmphasize>div>*:first-child{padding-left:0px;border-bottom:1px solid rgba(111,111,111,0.5);}
+.childEmphasize>div>*:last-child{text-align:right;border-top:1px solid rgba(111,111,111,0.5);}
+.text-input-pair>*{position:relative;width:50%;padding:0px;display:inline-block;}
+.text-input-pair>*>*{position:relative;width:100%;}
+
+#sysmsg{position:fixed;text-align:center;z-index:-1;}
+#sysmsg>div{border:1px solid green;background-color:rgba(123,255,123,0.5);color:#FFFFFF;}
+#sysmsg>div:hover{background-color:rgba(0,222,0,0.8189);}
+#sysmsg>div.red{border:1px solid red;background-color:rgba(255,123,123,0.5);}
+#sysmsg>div.red:hover{background-color:rgba(222,0,0,0.8189);}
+#sysmsg>div.blue{border:1px solid blue;background-color:rgba(123,123,255,0.5);}
+#sysmsg>div.blue:hover{background-color:rgba(0,0,222,0.8189);}
+
+#root{width:100%;height:100%;display:flex;flex-direction:column;}
+#root>div{position:relative;}
+#root>div:first-child{top:0px;}
+#root>div:last-child{bottom:0px;height:100%;}
+
+#txt{width:99%;height:99%;background-color:rgba(111,111,111,0.5);color:rgba(234,234,234,1);}
+
+#console{position:relative;width:100%;
+	-moz-transform:scale(1,-1);
+	-ms-transform:scale(1,-1);
+	-webkit-transform:scale(1,-1);
+	transform:scale(1,-1);
+	z-index:31;
+}
+#console>div{display:inline-block;
+	-moz-transform:scale(1,-1);
+	-ms-transform:scale(1,-1);
+	-webkit-transform:scale(1,-1);
+	transform:scale(1,-1);
+}
+#console>div:first-child{position:relative;width:100%;text-align:center;white-space:nowrap;overflow-x:hidden;}
+#console>div:first-child>div{position:relative;width:25%;display:inline-block;}
+--#console>div:first-child>div>div{width:100%;}
+#console>div{position:relative;width:11%;}
+--#console>div:last-child{width:88%;}
+#console>div>*{width:100%;display:block;}
+a{display:inline-block;width:100%;height:100%;margin:1px;text-align:center;background-color:rgba(123,123,23,0.5);color:#FFFFFF;}
+a:hover{background-color:rgba(234,234,123,0.75);color:blue;}
+#contents{position:relative;width:100%;height:100%;}
+#contents>div{position:absolute;width:100%;height:100%;}
+#contents>div>div{background-color:rgba(111,111,111,0.5);}
+
+</style>
+<script>
+"use strict";
+
+let NULL=null;
+let updatePeriod=133;
+let passThroughFunc=_=>_;
+let loop=function l(main,argvmain,itv){
+	let dt=isNaN(Number(itv))?updatePeriod:Number(itv);
+	setTimeout(function(){if(!main(argvmain))l(main,argvmain,dt);},dt);
+};
+let jurl=function jurl(url,method,callbacks,data,headers){
+	// str , str , funcs , formData/any , {}
+	// funcs = { succ:func_succ , fail:sunc_fail , farg:args_fail }
+	let xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if(this.readyState == 4){ let s=this.status.toString();
+			let succ,fail,farg;
+			if(callbacks){
+				succ=callbacks.succ;
+				fail=callbacks.fail;
+				farg=callbacks.farg;
+			}
+			if(s.length===3 && s.slice(0,1)==='2'){
+				if(typeof(succ)==="function") succ(this.responseText,url);
+			}else if(typeof(fail)==="function") fail(s,farg);
+		}
+	};
+	xhttp.open(method,url,true);
+	for(let h in headers) xhttp.setRequestHeader(h,headers[h]);
+	xhttp.send(method==="GET"?undefined:data);
+};
+let d=document;
+function numDelta(str,delta){return str.replace(/\-?[0-9]*\.?[0-9]*/g,function(m){return m!=""?Number(m)+delta:""})}
+Array.prototype.back=function(){return this.length==0?undefined:this[this.length-1];};
+Date.prototype.tostrUTC=function(){
+	let o=this,ms=""+this.getUTCMilliseconds();
+	return ""+o.getUTCFullYear()+'-'+(o.getUTCMonth()+1)+'-'+(o.getUTCDate())+
+		' '+(o.getUTCHours())+":"+(o.getUTCMinutes())+":"+(o.getUTCSeconds())+
+		'.'+"0".repeat(3-ms.length)+ms;
+};
+d.ge=function ge(id){return d.getElementById(id)}
+d.ce=function ce(tag){return d.createElement(tag)}
+d.ct=function ct(txt){return d.createTextNode(txt)}
+HTMLElement.prototype.ac=function(c){this.appendChild(c);return this;};
+HTMLElement.prototype.sa=function(a,v){this.setAttribute(a,v);return this;};
+HTMLElement.prototype.ga=function(a){return this.getAttribute(a);};
+HTMLElement.prototype.atxt=function(t){this.ac(d.ct(t));return this;};
+HTMLElement.prototype.range=function(){return this.getBoundingClientRect();};
+HTMLElement.prototype.cenPos=function(){
+	let rtv={},t=this.getBoundingClientRect();
+	rtv['x']=t.left+(t.width/2);
+	rtv['y']=t.top+(t.height/2);
+	return rtv;
+};
+HTMLElement.prototype.centerize=function(){
+	if(this==d.body) return this;
+	let prng=this.parentNode.range();
+	let orng=this.range();
+	this.sa('style','left:'+((prng.width-orng.width)/2)+'px;top:'+((prng.height-orng.height)/2)+'px;');
+	return this;
+};
+HTMLElement.prototype.ae=function(e,f){
+	if(this.attachEvent) this.attachEvent("on"+e,f);
+	else if(this.addEventListener) this.addEventListener(e,f);
+	else console.log("not support");
+	return this;
+};
+HTMLElement.prototype.rf=function(n){
+	let arr=this.childNodes;
+	while(arr.length!=0&&arr.length>n)this.removeChild(arr[arr.length-1]);
+	return this;
+};
+HTMLElement.prototype._fading=(argv)=>{
+	let obj=argv[0];
+	let newOpacity=obj.fadeFrame/obj.fadeFrameTotal+"";
+	if(0<obj.framePersist) newOpacity=1;
+	if(obj.style===undefined) obj.sa("style","opacity:"+newOpacity+";");
+	else obj.style.opacity=newOpacity;
+	if(0<obj.framePersist) --obj.framePersist;
+	else{
+		let rtv=!(0<obj.fadeFrame);
+		if(rtv){ obj.parentNode.removeChild(obj); return 1; }
+		--obj.fadeFrame;
+	}
+};
+HTMLElement.prototype.fading=function(persistFrameCnt,frameCnt=100){
+	if(this.fadeFrame) return;
+	this.framePersist=persistFrameCnt|=0;
+	this.fadeFrame=frameCnt;
+	this.fadeFrameTotal=frameCnt;
+	loop(this._fading,[this],34);
+	return this;
+};
+
+</script>
+</head>
+<body>
+<div id="root" class="maxH"><div id="console"><div>
+<div><a id="btn-save" href="javascript:void(0)" tabindex=1>save</a></div>
+<div><input id="fileName" class="maxWH" href="javascript:void(0)" tabindex=2 value="text.txt"></div>
+<a></a>
+<div><a id="btn-load" href="javascript:void(0)" tabindex=3 type="file">load</a></div>
+<div><input id="inputFile" class="maxWH" href="javascript:void(0)" tabindex=4 type="file"></div>
+<a id="btn-reDownload" href="javascript:void(0)" tabindex=4>N/A</a>
+<div class="text-input-pair" style="width:100%;">
+	<div style="text-align:right;">last download time: </div>
+	<input id="timerec" type=text disabled value="javascript is not available">
+</div>
+</div>
+</div><div id="contents" class="CC">
+<div><textarea id="txt" class="maxWH" autofocus tabindex=4></textarea></div>
+</div>
+</div></div>
+<div id="sysmsg" class="maxW btm"></div>
+<script>
+"use strict";
+const txtDec=new TextDecoder();
+const sysmsg=d.ge("sysmsg"),timerec=d.ge("timerec"),contents=d.ge("contents");
+const btn_save=d.ge('btn-save');
+const fileName=d.ge('fileName');
+const btn_load=d.ge('btn-load');
+const inputFile=d.ge('inputFile');
+const btn_reDownload=d.ge('btn-reDownload');
+const txt=d.ge('txt');
+
+let SystemData,exportUrl;
+
+
+sysmsg.add=function(m,args={"pc":50,"fc":100,"cc":"",}){
+	let pc=args["pc"]===undefined? 50:args["pc"];
+	let fc=args["fc"]===undefined?100:args["fc"];
+	let cc=args["cc"]===undefined? "":args["cc"];
+	let x=d.ce("div").atxt(m).sa("class",cc);
+	this.ac(x); x.fading(pc,fc);
+};
+
+
+timerec.timeFormat=function f(timestamp){
+	if(f.pad2===undefined) f.pad2=(n)=>{return (n<10?"0":"")+n;};
+	let it=timestamp.indexOf(".");
+	let ms="";
+	if(it===-1) ms+=".";
+	else{
+		let tmp=timestamp.slice(it).match(/^\.[0-9]*/);
+		ms+=(tmp!==null)?tmp[0]:".";
+		timestamp=timestamp.slice(0,it);
+	}
+	if(ms.length<3) ms+="0".repeat(3-ms.length);
+	let rtv="";
+	let t=new Date(timestamp+"Z");
+	let opt_t={"hour12":false};
+	let opt_d_v=[{"year":"numeric"},{"month":"2-digit"},{"day":"2-digit"}];
+	for(let x=0;x<opt_d_v.length;++x) rtv+=t.toLocaleDateString("en-US",opt_d_v[x])+"/";
+	rtv=rtv.replace(/\/$/," ");
+	rtv+=f.pad2(t.getHours()); rtv+=":";
+	rtv+=f.pad2(t.getMinutes()); rtv+=":";
+	rtv+=f.pad2(t.getSeconds()); rtv+=ms;
+	return rtv;
+};
+timerec.put=function f(txt){
+	SystemData=this._data=JSON.parse(txt);
+};
+timerec._loadCallbacks={
+succ:(txt,url)=>{
+	if(SystemData) return;
+	if(url.slice(url.lastIndexOf("&")+1)!==timerec._lastTime) return;
+	timerec.put(txt);
+	sysmsg.add("succ: auto data from file",{"cc":"green"});
+	timerec.sa("value","O: "+timerec.timeFormat(new Date().tostrUTC()));
+},
+fail:s=>{
+	sysmsg.add("fail: auto load data from file. xhr status = "+s,{"cc":"red"});
+	timerec.sa("value","X: "+timerec.timeFormat(new Date().tostrUTC()));
+},
+}; // timerec._loadCallbacks
+timerec.reload=function f(){
+	timerec.sa("value","...");
+	this._lastTime=''+new Date().getTime();
+	jurl("data.json?&"+this._lastTime,"GET",this._loadCallbacks);
+};
+
+
+const packData=function f(){
+	const rtv={};
+	rtv.consts=f.getConstData();
+	rtv.skills=[...conf_skill_content.childNodes].map(f.getSkillData);
+	rtv.actors=[...conf_actor_content.childNodes].map(f.getActorData);
+	return rtv;
+},unpackData=function f(dataObj){
+	
+};
+
+
+btn_load.onchange=function f(){
+	sysmsg.add("info: data file changed, click '"+btnLoaddata.innerText+"'",{"cc":"blue"});
+};
+
+
+(btn_load.onclick=function f(){
+	this.disabled=1;
+try{
+	const files=inputFile.files;
+	const fileCnt=this.fileCounts=files.length;
+	if(!fileCnt){
+		sysmsg.add("fail: load data: no file selected",{"cc":"red"});
+		this.disabled=0;
+		return;
+	}
+	const reader=new FileReader();
+	reader._btn=this;
+	reader.onload=f.tbl.onload;
+	reader.onerror=f.tbl.onerror;
+	reader.readAsArrayBuffer(files[0]);
+}catch(e){
+	;
+}
+	this.disabled=0;
+}).tbl={
+onload:function f(e){
+	this._btn.disabled=0;
+	console.log(e);
+	const arrBuf=e.target.result;
+	
+	const s=txtDec.decode(arrBuf);
+	console.log(s);
+	txt.value=s;
+	sysmsg.add("succ: load data from file",{"cc":"green"});
+},
+onerror:function f(e){
+	this._btn.disabled=0;
+	sysmsg.add("fail: load data",{"cc":"red"});
+},
+};
+
+btn_save.onclick=function f(){
+	if(exportUrl) window.URL.revokeObjectURL(exportUrl);
+	const blob=new Blob([txt.value],{type:"plain/text"});
+	const url=window.URL.createObjectURL(blob);
+	sysmsg.add("exporting",{"cc":"blue"});
+	const fname=fileName.value.replace(/\//g,"%2F").replace(/\\/g,"%5C");
+	const a=btn_reDownload.sa('href',url).rf(0).atxt("re-download ("+timerec.timeFormat(new Date().tostrUTC())+")");
+	if(fname) a.sa("download",fname);
+	timerec.sa("value","@"+timerec.timeFormat(new Date().tostrUTC())+" | "+fname);
+	a.click();
+	exportUrl=url;
+};
+
+
+
+</script>
+</body>
+</html>
+
