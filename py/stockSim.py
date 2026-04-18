@@ -1,9 +1,13 @@
 
+import os
 import sys
+import multiprocessing
+
 import math
 import random
 from decimal import Decimal, Context, getcontext, localcontext
 
+import time
 from pprint import pprint
 
 
@@ -57,8 +61,37 @@ if 0:
 	pass
 
 
-def doTest1(argv):
-	prices=initPrices[:]
+def getUsableCpus():
+	rtv=1
+	try:
+		import os
+		rtv=len(os.sched_getaffinity(0))
+	except:
+		try:
+			import ctypes
+			aff_curr=ctypes.c_ulonglong(0)
+			aff_sys=ctypes.c_ulonglong(0)
+			if ctypes.windll.kernel32.GetProcessAffinityMask(
+				ctypes.windll.kernel32.GetCurrentProcess(),
+				ctypes.byref(aff_curr),
+				ctypes.byref(aff_sys),
+			):
+				try:
+					rtv=aff_curr.bit_count()
+				except:
+					rtv=bin(int(aff_curr.value)).count('1')
+			else:
+				# api fail
+				rtv=1
+		except:
+			rtv=1
+			pass
+	return rtv
+
+
+def doTest1(globalInfo):
+	initCash=globalInfo['initCash']
+	prices=globalInfo['initPrices'][:]
 	prices0=prices[:]
 	shares=[0]*len(prices)
 	cash=initCash
@@ -156,31 +189,34 @@ def doTest1(argv):
 		for i in range(len(prices)): resV0+=shares0[i]*prices[i]
 		resV=cash
 		for i in range(len(prices)): resV+=shares[i]*prices[i]
-		with localcontext() as ctx:
-			ctx.prec=printPrec
-			print('round',_,
-				resV.to_eng_string(),
-				resV0.to_eng_string(),
-				(resV/resV0).to_eng_string(),
-				(resV/initCash).to_eng_string(),
-				(resV-resV0).to_eng_string(),
-				(resV-initCash).to_eng_string(),
-			' '*8,end='\r')
+		if not globalInfo['outputs']:
+			with localcontext() as ctx:
+				ctx.prec=printPrec
+				print('round',_,
+					resV.to_eng_string(),
+					resV0.to_eng_string(),
+					(resV/resV0).to_eng_string(),
+					(resV/initCash).to_eng_string(),
+					(resV-resV0).to_eng_string(),
+					(resV-initCash).to_eng_string(),
+				' '*8,end='\r')
+				pass
 			pass
 		pass
-	print()
-	print('idx,shares0,shares,prices0,prices')
-	for i in range(len(prices)):
-		print(i,shares0[i],shares[i],prices0[i],prices[i],sep=',')
-	print('cash0')
-	pprint(cash0)
-	print('cash')
-	pprint(cash)
-	print('initCash',initCash)
-	print('resV0',resV0)
-	print('resV',resV)
-	print('resV/resV0',resV/resV0)
-	print('resV/initCash',resV/initCash)
+	if not globalInfo['outputs']:
+		print()
+		print('idx,shares0,shares,prices0,prices')
+		for i in range(len(prices)):
+			print(i,shares0[i],shares[i],prices0[i],prices[i],sep=',')
+		print('cash0')
+		pprint(cash0)
+		print('cash')
+		pprint(cash)
+		print('initCash',initCash)
+		print('resV0',resV0)
+		print('resV',resV)
+		print('resV/resV0',resV/resV0)
+		print('resV/initCash',resV/initCash)
 	pass
 	return [
 		float(resV0/initCash),
@@ -189,7 +225,8 @@ def doTest1(argv):
 	pass
 
 
-def printResv(resv):
+def printResv(resv_src):
+	resv=[x for x in resv_src if x]
 	resv.sort()
 	s=sum(resv)
 	m=resv[len(resv)>>1] if len(resv)&1 else (resv[len(resv)>>1]+(resv[(len(resv)>>1)-1]))/2.0
@@ -201,28 +238,84 @@ def printResv(resv):
 		'len':len(resv),
 	})
 
-def doTests(argv):
-	resv0=[]
-	resv1=[]
+def doTests(globalInfo,idxBeg,idxEnd):
+	simsRound=idxEnd-idxBeg
+	resv0=[0.0]*simsRound
+	resv1=[0.0]*simsRound
 	for i in range(simsRound):
 		try:
-			res=doTest1(argv)
-			resv0.append(res[0])
-			resv1.append(res[1])
+			res=doTest1(globalInfo)
+			resv0[i]=res[0]
+			resv1[i]=res[1]
 		except KeyboardInterrupt as e:
 			raise e
 		except:
 			print('broke')
-		print(i+1,'/',simsRound)
-	print('len',len(resv0))
+		print(idxBeg,i+1,'/',simsRound)
+	if not globalInfo['outputs']:
+		return resv0,resv1
+	for i in range(simsRound):
+		globalInfo['outputs']['resv0'][idxBeg+i]=resv0[i]
+		globalInfo['outputs']['resv1'][idxBeg+i]=resv1[i]
+	pass
+
+def doTests_threading(argv):
+	parallelCnt=max(1,getUsableCpus()-1)
+	#parallelCnt=1 # debug test
+	resv0=multiprocessing.RawArray('d', range(simsRound))
+	resv1=multiprocessing.RawArray('d', range(simsRound))
+	globalInfo_src={
+		'outputs':{
+			'resv0':resv0,
+			'resv1':resv1,
+		},
+		'initCash':initCash,
+		'initPrices':initPrices[:],
+		'cashRate':Decimal(cashRate),
+	}
+	if 1<parallelCnt:
+		starts=[simsRound*i//parallelCnt for i in range(parallelCnt)]
+		starts.append(simsRound)
+		threads=[]
+		for i in range(parallelCnt-1,-1,-1):
+			globalInfo={}
+			for k in globalInfo_src: globalInfo[k]=globalInfo_src[k]
+			globalInfo['outputs']={
+				'resv0':resv0,
+				'resv1':resv1,
+			}
+			globalInfo['initPrices']=initPrices[:]
+			t=multiprocessing.Process(
+				target=doTests,
+				args=(globalInfo,starts[i],starts[i+1],),
+				#kwargs=None,
+			)
+			threads.append(t,)
+			print(i,starts[i+1]-starts[i],starts[i])
+		for t in threads:
+			t.start()
+			print('thread start:',t,)
+		for t in threads: t.join()
+	else:
+		globalInfo={}
+		for k in globalInfo_src: globalInfo[k]=globalInfo_src[k]
+		globalInfo['outputs']=None
+		resv0,resv1=doTests(globalInfo,0,simsRound)
+	resv0=[x for x in resv0 if x]
+	resv1=[x for x in resv1 if x]
+	print('len',len(resv0),len(resv1),)
 	print('resv0')
 	printResv(resv0)
 	print('resv1')
 	printResv(resv1)
+	pass
 
 
 def main(argv):
-	doTests(argv)
+	t0=time.time()
+	doTests_threading(argv)
+	t1=time.time()
+	print('time',t1-t0)
 
 
 if __name__=='__main__':
