@@ -229,9 +229,18 @@ def printResv(resv_src):
 	resv=[x for x in resv_src if x]
 	resv.sort()
 	s=sum(resv)
-	m=resv[len(resv)>>1] if len(resv)&1 else (resv[len(resv)>>1]+(resv[(len(resv)>>1)-1]))/2.0
+	L=len(resv)
+	m=resv[L>>1] if L&1 else (resv[L>>1]+(resv[(L>>1)-1]))/2.0
+	m25=resv[L>>2] if L&3 else (resv[L>>2]+resv[(L>>2)-1])/2.0
+	m75=resv[(L*3)>>2] if L&3 else (resv[(L*3)>>2]+resv[((L*3)>>2)-1])/2.0
+	m125=resv[L>>3] if L&7 else (resv[L>>3]+resv[(L>>3)-1])/2.0
+	m875=resv[(L*7)>>3] if L&7 else (resv[(L*7)>>3]+resv[((L*7)>>3)-1])/2.0
 	pprint({
 		'mid':m,
+		'm25':m25,
+		'm75':m75,
+		'm125':m125,
+		'm875':m875,
 		'avg':s/len(resv),
 		'min':min(resv),
 		'max':max(resv),
@@ -289,6 +298,7 @@ def doTests_threading(argv):
 				target=doTests,
 				args=(globalInfo,starts[i],starts[i+1],),
 				#kwargs=None,
+				daemon=True,
 			)
 			threads.append(t,)
 			print(i,starts[i+1]-starts[i],starts[i])
