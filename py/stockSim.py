@@ -162,7 +162,7 @@ def doTest1(globalInfo):
 			if not adjSs[i]: continue
 			if adjRatio<1:
 				adjSs[i]*=adjRatio
-				if 0<adjSs[i]: adjSs[i]=int(adjSs[i])
+				adjSs[i]=math.floor(adjSs[i])
 			cash-=adjSs[i]*prices[i]
 			shares[i]+=adjSs[i]
 			r=1+balancingThreshold if adjSs[i]<0 else 1/(1+balancingThreshold)
