@@ -269,7 +269,7 @@ def doTests(globalInfo,idxBeg,idxEnd):
 	pass
 
 def doTests_threading(argv):
-	parallelCnt=max(1,getUsableCpus()-1)
+	parallelCnt=max(1,getUsableCpus()-1) if '--single-cpu' not in argv else 1
 	#parallelCnt=1 # debug test
 	resv0=multiprocessing.RawArray('d', range(simsRound))
 	resv1=multiprocessing.RawArray('d', range(simsRound))
