@@ -28,6 +28,7 @@ simsRound=int(sys.argv[2]) if len(sys.argv)>2 else 10**2
 N=1
 balancingThreshold=1.0/8/N # p: 1/8 -> 1/8-1/32 ; th: +- 1/8
 rebalancedRatio=Decimal(1.0/8-1.0/32)/N
+buyAdjRatio=balancingThreshold
 if rebalancedRatio>=balancingThreshold: raise "conf error"
 
 
@@ -170,7 +171,7 @@ def doTest1(globalInfo):
 				adjSs[i]=math.floor(adjSs[i])
 			cash-=adjSs[i]*prices[i]
 			shares[i]+=adjSs[i]
-			r=1+balancingThreshold if adjSs[i]<0 else 1/(1+balancingThreshold)
+			r=1+buyAdjRatio if adjSs[i]<0 else 1/(1+buyAdjRatio)
 			weights[i]*=Decimal(r)
 			#print(_,i,weights[i],r)
 		if cash<0:
