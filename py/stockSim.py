@@ -256,7 +256,7 @@ def printResv(resv_src):
 	m875=resv[(L*7)>>3] if L&7 else (resv[(L*7)>>3]+resv[((L*7)>>3)-1])/2.0
 	m625=resv[(L*5)>>3] if L&7 else (resv[(L*5)>>3]+resv[((L*5)>>3)-1])/2.0
 	m375=resv[(L*3)>>3] if L&7 else (resv[(L*3)>>3]+resv[((L*3)>>3)-1])/2.0
-	pprint({
+	info={
 		'mid':m,
 		'm25':m25,
 		'm75':m75,
@@ -268,7 +268,21 @@ def printResv(resv_src):
 		'min':min(resv),
 		'max':max(resv),
 		'len':len(resv),
-	})
+		'_keys':[
+			'len',
+			'avg',
+			'min',
+			'm125',
+			'm25',
+			'm375',
+			'mid',
+			'm625',
+			'm75',
+			'm875',
+			'max',
+		],
+	}
+	pprint([[k,info[k],] for k in info['_keys']])
 
 def doTests(globalInfo,idxBeg,idxEnd):
 	simsRound=idxEnd-idxBeg
