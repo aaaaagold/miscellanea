@@ -95,12 +95,17 @@ def doTest1(globalInfo):
 	prices0=prices[:]
 	shares=[0]*len(prices)
 	cash=initCash
+	cashAllIn=0
+	sharesAllIn=0
 	if 1:
 		cash1=int(initCash*(1-cashRate)/len(prices))
 		for i in range(len(prices)):
 			share=int(cash1/prices[i])
 			shares[i]+=share
 			cash-=share*prices[i]
+		pass
+		sharesAllIn+=int(int(initCash/len(prices))/prices0[0])
+		cashAllIn+=initCash-sharesAllIn*prices0[0]*len(prices)
 		pass
 	shares0=shares[:]
 	cash0=cash
@@ -189,6 +194,7 @@ def doTest1(globalInfo):
 		for i in range(len(prices)): resV0+=shares0[i]*prices[i]
 		resV=cash
 		for i in range(len(prices)): resV+=shares[i]*prices[i]
+		resAllIn=cashAllIn+sharesAllIn*sum(prices)
 		if not globalInfo['outputs']:
 			with localcontext() as ctx:
 				ctx.prec=printPrec
@@ -197,8 +203,10 @@ def doTest1(globalInfo):
 					resV0.to_eng_string(),
 					(resV/resV0).to_eng_string(),
 					(resV/initCash).to_eng_string(),
+					(resAllIn/initCash).to_eng_string(),
 					(resV-resV0).to_eng_string(),
 					(resV-initCash).to_eng_string(),
+					(resAllIn-initCash).to_eng_string(),
 				' '*8,end='\r')
 				pass
 			pass
@@ -215,12 +223,16 @@ def doTest1(globalInfo):
 		print('initCash',initCash)
 		print('resV0',resV0)
 		print('resV',resV)
+		print('resAllIn',resAllIn)
 		print('resV/resV0',resV/resV0)
+		print('resAllIn/resV0',resAllIn/resV0)
 		print('resV/initCash',resV/initCash)
+		print('resAllIn/initCash',resAllIn/initCash)
 	pass
 	return [
 		float(resV0/initCash),
 		float(resV/initCash),
+		float(resAllIn/initCash),
 	]
 	pass
 
@@ -251,21 +263,24 @@ def doTests(globalInfo,idxBeg,idxEnd):
 	simsRound=idxEnd-idxBeg
 	resv0=[0.0]*simsRound
 	resv1=[0.0]*simsRound
+	resv2=[0.0]*simsRound
 	for i in range(simsRound):
 		try:
 			res=doTest1(globalInfo)
 			resv0[i]=res[0]
 			resv1[i]=res[1]
+			resv2[i]=res[2]
 		except KeyboardInterrupt as e:
 			raise e
 		except:
 			print('broke')
 		print(idxBeg,i+1,'/',simsRound)
 	if not globalInfo['outputs']:
-		return resv0,resv1
+		return resv0,resv1,resv2
 	for i in range(simsRound):
 		globalInfo['outputs']['resv0'][idxBeg+i]=resv0[i]
 		globalInfo['outputs']['resv1'][idxBeg+i]=resv1[i]
+		globalInfo['outputs']['resv2'][idxBeg+i]=resv2[i]
 	pass
 
 def doTests_threading(argv):
@@ -273,10 +288,12 @@ def doTests_threading(argv):
 	#parallelCnt=1 # debug test
 	resv0=multiprocessing.RawArray('d', range(simsRound))
 	resv1=multiprocessing.RawArray('d', range(simsRound))
+	resv2=multiprocessing.RawArray('d', range(simsRound))
 	globalInfo_src={
 		'outputs':{
-			'resv0':resv0,
-			'resv1':resv1,
+			'resv0':resv0, # 1-cashRate
+			'resv1':resv1, # dynamic
+			'resv2':resv2, # 100%
 		},
 		'initCash':initCash,
 		'initPrices':initPrices[:],
@@ -292,6 +309,7 @@ def doTests_threading(argv):
 			globalInfo['outputs']={
 				'resv0':resv0,
 				'resv1':resv1,
+				'resv2':resv2,
 			}
 			globalInfo['initPrices']=initPrices[:]
 			t=multiprocessing.Process(
@@ -310,14 +328,17 @@ def doTests_threading(argv):
 		globalInfo={}
 		for k in globalInfo_src: globalInfo[k]=globalInfo_src[k]
 		globalInfo['outputs']=None
-		resv0,resv1=doTests(globalInfo,0,simsRound)
+		resv0,resv1,resv2=doTests(globalInfo,0,simsRound)
 	resv0=[x for x in resv0 if x]
 	resv1=[x for x in resv1 if x]
-	print('len',len(resv0),len(resv1),)
+	resv2=[x for x in resv2 if x]
+	print('len',len(resv0),len(resv1),len(resv2),)
 	print('resv0')
 	printResv(resv0)
 	print('resv1')
 	printResv(resv1)
+	print('resv2')
+	printResv(resv2)
 	pass
 
 
@@ -330,5 +351,4 @@ def main(argv):
 
 if __name__=='__main__':
 	main(sys.argv)
-
 
