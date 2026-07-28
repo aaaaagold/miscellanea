@@ -341,6 +341,10 @@ def doTests_threading(argv):
 	print('resv2')
 	printResv(resv2)
 	pass
+	print('balancingThreshold',balancingThreshold)
+	print('rebalancedRatio',rebalancedRatio)
+	print('buyAdjRatio',buyAdjRatio)
+	pass
 
 
 def main(argv):
