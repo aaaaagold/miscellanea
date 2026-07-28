@@ -35,6 +35,10 @@ elif paramSel==2:
 	balancingThreshold=0.05/N #
 	rebalancedRatio=Decimal(balancingThreshold-.0375)/N
 	buyAdjRatio=Decimal(.9875-1)/N
+elif paramSel==3:
+	balancingThreshold=0.05/N #
+	rebalancedRatio=Decimal(balancingThreshold-.0375)/N
+	buyAdjRatio=Decimal(1/.9875-1)/N
 if rebalancedRatio>=balancingThreshold: raise "conf error"
 
 
