@@ -25,10 +25,16 @@ cashRate=Decimal(1.0/32)
 initPrices=[Decimal(10**8),]*32
 sim1Round=int(sys.argv[1]) if len(sys.argv)>1 else 1250
 simsRound=int(sys.argv[2]) if len(sys.argv)>2 else 10**2
+paramSel=int(sys.argv[3]) if len(sys.argv)>3 else 0
 N=1
 balancingThreshold=1.0/8/N # p: 1/8 -> 1/8-1/32 ; th: +- 1/8
 rebalancedRatio=Decimal(1.0/8-1.0/32)/N
 buyAdjRatio=balancingThreshold
+if not paramSel: pass
+elif paramSel==2:
+	balancingThreshold=0.05/N #
+	rebalancedRatio=Decimal(balancingThreshold-.0375)/N
+	buyAdjRatio=Decimal(.9875-1)/N
 if rebalancedRatio>=balancingThreshold: raise "conf error"
 
 
