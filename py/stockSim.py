@@ -241,9 +241,9 @@ def doTest1(globalInfo):
 		print('resAllIn/initCash',resAllIn/initCash)
 	pass
 	return [
-		float(resV0/initCash),
-		float(resV/initCash),
-		float(resAllIn/initCash),
+		float(resV0/initCash),	# no change, in ratio = 1-cashRate
+		float(resV/initCash),	# dynamic adj
+		float(resAllIn/initCash), # no change, all in
 	]
 	pass
 
@@ -362,11 +362,11 @@ def doTests_threading(argv):
 	resv1=[x for x in resv1 if x]
 	resv2=[x for x in resv2 if x]
 	print('len',len(resv0),len(resv1),len(resv2),)
-	print('resv0')
+	print('resv0','no change, in ratio =',1-cashRate,)
 	printResv(resv0)
-	print('resv1')
+	print('resv1','dynamic adjust')
 	printResv(resv1)
-	print('resv2')
+	print('resv2','no change, all in')
 	printResv(resv2)
 	pass
 	print('balancingThreshold',balancingThreshold)
