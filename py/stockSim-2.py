@@ -65,9 +65,11 @@ def makePricev(stockCode,startDate=None):
 
 
 stockCode=sys.argv[1] if 1<len(sys.argv) else "0052"
-startDate=sys.argv[2] if 2<len(sys.argv) else None
+startDate=sys.argv[2] if 2<len(sys.argv) else ""
+inflationRate=sys.argv[3] if 3<len(sys.argv) else ""
 print("stockCode",stockCode,)
 print("startDate",startDate,)
+print("inflationRate",inflationRate,)
 pricev=makePricev(stockCode,startDate)
 #print(pricev)
 print(len(pricev))
@@ -106,6 +108,7 @@ def simStrategy(pricev,rsvRate=Decimal('0.3'),inflationPerDay=Decimal('1.0004'),
 			cash-=delta*p # cash inc.
 			cnt+=1
 		shares+=sharesD
+		assert cash>=0 and shares>=0
 		if isAdjs[0]!=isAdjs[1]:
 			if isAdjs[0]: refValue*=refAdjs0[0]
 			if isAdjs[1]: refValue*=refAdjs0[1]
@@ -114,6 +117,7 @@ def simStrategy(pricev,rsvRate=Decimal('0.3'),inflationPerDay=Decimal('1.0004'),
 	return cnt,[ [rtv[i],rtv[i],pricev[i][2],] for i in range(len(rtv)) ],
 
 
+'''
 res_rsv03inf10003=simStrategy(pricev,inflationPerDay=Decimal('1.0003'),rsvRate=Decimal('0.3'),)
 res_rsv03inf10004=simStrategy(pricev,inflationPerDay=Decimal('1.0004'),rsvRate=Decimal('0.3'),)
 res_rsv03inf10005=simStrategy(pricev,inflationPerDay=Decimal('1.0005'),rsvRate=Decimal('0.3'),)
@@ -122,6 +126,12 @@ res_rsv05inf10003=simStrategy(pricev,inflationPerDay=Decimal('1.0003'),rsvRate=D
 res_rsv05inf10004=simStrategy(pricev,inflationPerDay=Decimal('1.0004'),rsvRate=Decimal('0.5'),)
 res_rsv05inf10005=simStrategy(pricev,inflationPerDay=Decimal('1.0005'),rsvRate=Decimal('0.5'),)
 res_rsv05inf10006=simStrategy(pricev,inflationPerDay=Decimal('1.0006'),rsvRate=Decimal('0.5'),)
+'''
+
+res_rsv03,res_rsv05=None,None
+if inflationRate:
+	res_rsv03=simStrategy(pricev,inflationPerDay=Decimal(inflationRate),rsvRate=Decimal('0.3'),)
+	res_rsv05=simStrategy(pricev,inflationPerDay=Decimal(inflationRate),rsvRate=Decimal('0.5'),)
 
 
 def printDrawback(pricev):
@@ -135,7 +145,14 @@ def printDrawback(pricev):
 		if pricev[lastHighIdx][1]<pricev[i][1] or i+1==L:
 			if pricev[lastHighMinIdx][0]<pricev[lastHighIdx][0]:
 				ratio=pricev[lastHighMinIdx][0]/pricev[lastHighIdx][1]
-				newHighDrawbacks.append([ratio,lastHighIdx,lastHighMinIdx,pricev[lastHighIdx][2],pricev[lastHighMinIdx][2],])
+				newHighDrawbacks.append([
+					ratio,
+					lastHighIdx,
+					lastHighMinIdx,
+					pricev[lastHighIdx][2],
+					pricev[lastHighMinIdx][2],
+					pricev[lastHighMinIdx][0]/pricev[0][1],
+				])
 				if ratio<0.9:
 					#print(pricev[lastHighIdx][2],pricev[lastHighMinIdx][2],)
 					##print("",pricev[lastHighIdx][0],pricev[lastHighMinIdx][0],)
@@ -156,6 +173,7 @@ with localcontext() as ctx:
 	print(res[0],min([x[0] for x in res[1]]))
 	print("",[x for x in sorted(res[1],key=lambda x:x[0]) if x[0]<0.93])
 	
+	'''
 	print("#"*4,"res_rsv03inf10003",res_rsv03inf10003[0],)
 	res=printDrawback(res_rsv03inf10003[1])
 	print(res[0],min([x[0] for x in res[1]]))
@@ -195,6 +213,20 @@ with localcontext() as ctx:
 	res=printDrawback(res_rsv05inf10006[1])
 	print(res[0],min([x[0] for x in res[1]]))
 	print("",[x for x in sorted(res[1],key=lambda x:x[0]) if x[0]<0.93])
+'''
+	
+	if inflationRate:
+		print("#"*4,"res_rsv03",res_rsv03[0],)
+		res=printDrawback(res_rsv03[1])
+		print(res[0],min([x[0] for x in res[1]]))
+		print("",[x for x in sorted(res[1],key=lambda x:x[0]) if x[0]<0.93])
+		
+		print("#"*4,"res_rsv05",res_rsv05[0],)
+		res=printDrawback(res_rsv05[1])
+		print(res[0],min([x[0] for x in res[1]]))
+		print("",[x for x in sorted(res[1],key=lambda x:x[0]) if x[0]<0.93])
+		
+		pass
 	
 	pass
 
