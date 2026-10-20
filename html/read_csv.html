@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.border { border: 1px solid black; }
+.table-root {
+	border-spacing: 0px;
+	border-collapse: collapse;
+}
+.table-root div {
+	word-break: keep-all;
+	white-space: pre;
+	text-align: center;
+}
+.table-root td {
+	padding: 2px;
+	border: 1px solid black;
+}
+.table-header {
+	background-color: rgba(234, 234, 0, 0.5);
+}
+.table-tbody td {
+	text-align: left;
+}
+.table-tbody tr:hover {
+	background-color: rgba(0, 234, 0, 0.25);
+}
+</style>
+</head>
+<body>
+<div id="root">
+	<div><label>CSV 檔案：<input id="input-file" type="file" accept=".csv,text/plain"></label></div>
+	<div id="data-root"><div> loading .. </div></div>
+</div>
+<script>
+"use strict";
+(()=>{
+
+const doc = document;
+
+{ const p = HTMLElement.prototype, d = doc;
+	d.ce = d.createElement;
+	d.ctxt = d.createTextNode;
+	d.ge = d.getElementById;
+	p.ac = function(c){ this.appendChild(c); return this; };
+	p.atxt = function(t){ this.appendChild(d.ctxt(t)); return this; };
+	p.rc = function(c){ this.removeChild(c); return this; }
+	p.rf = function(i){
+		const arr = this.childNodes;
+		while(arr.length > i) this.rc(arr[arr.length - 1]);
+		return this;
+	};
+	p.sa = function(a, v){ this.setAttribute(a, v); return this; };
+}
+
+// ---- 與 salary-tw.html 相同的 CSV parser ----
+const parseCsv=(text)=>{
+	const t = text.replace(/\r/g, '');
+	const result = [];
+	let row = [];
+	let field = '';
+	let inQuotes = false;
+
+	for(let i = 0, sz = t.length; i < sz; ++i){
+		const c = t[i];
+		const nextC = t[i + 1];
+
+		if(inQuotes){
+			if(c === '"'){
+				// 處理逸出雙引號 (連續兩個雙引號 "" 代表一個雙引號字串)
+				if(nextC === '"'){
+					field += '"';
+					++i; // 跳過下一個雙引號
+				}else inQuotes = false;
+			}else field += c;
+		}else{
+			if(c === '"') inQuotes = true;
+			else if(c === ','){
+				row.push(field);
+				field = '';
+			}else if(c === '\n'){
+				row.push(field);
+				result.push(row);
+				field = '';
+				row = [];
+			}else field += c;
+		}
+	}
+
+	// 處理最後一列沒有以換行結尾的情況
+	if(field !== '' || 0 < row.length){
+		row.push(field);
+		result.push(row);
+	}
+
+	return result;
+};
+
+// ---- 純顯示 csv 表格 ----
+const renderTable=(root, dataRows)=>{
+	root.rf(0);
+	if(!dataRows.length){
+		root.ac(root.atxt('（沒有資料）'));
+		return;
+	}
+	const tbl = doc.ce('table').sa('class', 'table-root');
+	tbl.ac(tbl._head = doc.ce('thead').sa('class', 'table-header'));
+	tbl.ac(tbl._body = doc.ce('tbody').sa('class', 'table-tbody'));
+
+	const headRow = doc.ce('tr');
+	const colCount = dataRows[0].length;
+	for(let x = 0; x < colCount; ++x){
+		headRow.ac(doc.ce('td').ac(doc.ce('div').atxt(dataRows[0][x])));
+	}
+	tbl._head.ac(headRow);
+
+	for(let ri = 1, rsz = dataRows.length; ri < rsz; ++ri){
+		const row = dataRows[ri];
+		const tr = doc.ce('tr');
+		for(let x = 0; x < colCount; ++x){
+			tr.ac(doc.ce('td').atxt(row[x] || ''));
+		}
+		tbl._body.ac(tr);
+	}
+	root.ac(tbl);
+};
+
+const dataRoot = doc.ge('data-root');
+const inputFile = doc.ge('input-file');
+inputFile.onchange = ()=>{
+	const file = inputFile.files[0];
+	if(!file) return;
+	const reader = new FileReader();
+	reader.onload = ()=>{
+		const dataRows = parseCsv(reader.result);
+		renderTable(dataRoot, dataRows);
+	};
+	reader.readAsText(file);
+};
+
+})();
+</script>
+</body>
+</html>
