@@ -52,14 +52,16 @@ SM_CXVIRTUALSCREEN = 78
 SM_CYVIRTUALSCREEN = 79
 
 # SendInput event flags
-MOUSEEVENTF_MOVE = 0x0001
-MOUSEEVENTF_ABSOLUTE = 0x8000
-MOUSEEVENTF_DOWN = 0x0002
-MOUSEEVENTF_UP = 0x0004
-MOUSEEVENTF_MIDDLEBUTTON = 0x0020
-MOUSEEVENTF_RIGHTBUTTON = 0x0008
-MOUSEEVENTF_WHEEL = 0x0080
-KEYEVENTF_KEYUP = 0x0002
+MOUSEEVENTF_MOVE       = 0x0001
+MOUSEEVENTF_ABSOLUTE   = 0x8000
+MOUSEEVENTF_LEFTDOWN   = 0x0002
+MOUSEEVENTF_LEFTUP     = 0x0004
+MOUSEEVENTF_RIGHTDOWN  = 0x0008
+MOUSEEVENTF_RIGHTUP    = 0x0010
+MOUSEEVENTF_MIDDLEDOWN = 0x0020
+MOUSEEVENTF_MIDDLEUP   = 0x0040
+MOUSEEVENTF_WHEEL      = 0x00800
+KEYEVENTF_KEYUP    = 0x0002
 KEYEVENTF_SCANCODE = 0x0008
 
 
@@ -379,7 +381,6 @@ class ScreenCapture:
 			#print('cacheHitCnt',cacheHitCnt)
 			return buf
 		pass
-		
 
 
 # BI_RGB compression type (uncompressed RGB).
@@ -450,29 +451,45 @@ def handle_input(payload):
 	if etype == "mousemove":
 		x = max(0, min(payload.get("x", 0), width))
 		y = max(0, min(payload.get("y", 0), height))
-		_send_mouse(_map_coord(x, width), _map_coord(y, height), MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE)
-
+		_send_mouse(
+			_map_coord(x, width-1), _map_coord(y, height-1),
+			MOUSEEVENTF_MOVE|MOUSEEVENTF_ABSOLUTE,
+		)
+		pass
 	elif etype in ("mousedown", "mouseup"):
 		x = max(0, min(payload.get("x", 0), width))
 		y = max(0, min(payload.get("y", 0), height))
-		flags = MOUSEEVENTF_ABSOLUTE | (MOUSEEVENTF_DOWN if etype[5] == "d" else MOUSEEVENTF_UP)
+		flags = MOUSEEVENTF_ABSOLUTE
 		button = payload.get("button", 0)
-		if button == 1:
-			flags |= MOUSEEVENTF_MIDDLEBUTTON
-		elif button == 2:
-			flags |= MOUSEEVENTF_RIGHTBUTTON
-		_send_mouse(_map_coord(x, width), _map_coord(y, height), flags)
-
+		if   button == 0: flags |= (MOUSEEVENTF_LEFTDOWN   if etype[5] == "d" else MOUSEEVENTF_LEFTUP)
+		elif button == 1: flags |= (MOUSEEVENTF_MIDDLEDOWN if etype[5] == "d" else MOUSEEVENTF_MIDDLEUP)
+		elif button == 2: flags |= (MOUSEEVENTF_RIGHTDOWN  if etype[5] == "d" else MOUSEEVENTF_RIGHTUP)
+		else: return
+		_send_mouse(
+			_map_coord(x,width-1), _map_coord(y,height-1),
+			flags,
+		)
+		pass
 	elif etype == "wheel":
-		dy = int(payload.get("deltaY", 0))
+		dx = int(payload.get("dx", 0))
+		dy = int(payload.get("dy", 0))
+		print("wheel",dx,dy,)
 		x = max(0, min(payload.get("x", 0), width))
 		y = max(0, min(payload.get("y", 0), height))
-		_send_mouse(_map_coord(x, width), _map_coord(y, height), MOUSEEVENTF_WHEEL | MOUSEEVENTF_ABSOLUTE, dy * 120)
-
+		_send_mouse(
+			_map_coord(x,width-1), _map_coord(y,height-1),
+			MOUSEEVENTF_WHEEL|MOUSEEVENTF_ABSOLUTE,
+			dy*120,
+		)
+		pass
 	elif etype in ("keydown", "keyup"):
 		vk = _vk_for_key(payload)
 		if vk is not None:
-			_send_key(vk, keyup=(etype[3] != "d"))
+			_send_key(
+				vk,
+				keyup=(etype[3]!="d"),
+			)
+		pass
 	print('errcode',ctypes.get_last_error())
 	print('handle_input end',payload,time.time())
 	return True
@@ -716,8 +733,9 @@ const task_afterMetaLoaded=()=>{
 
 	img.addEventListener('mousedown', function (e) {
 		e.preventDefault();
+		console.log('md',e.button,);
 		const s=toScreen(e.clientX, e.clientY);
-		send({
+		if(0)send({
 			type:'mousemove',
 			x:s.x,
 			y:s.y,
@@ -735,6 +753,7 @@ const task_afterMetaLoaded=()=>{
 	};
 	window.addEventListener('mouseup', function (e) {
 		e.preventDefault();
+		console.log('mu',e.button,);
 		send({
 			type:'mouseup',
 			x:s_last.x,
@@ -758,7 +777,8 @@ const task_afterMetaLoaded=()=>{
 			type:'wheel',
 			x:s.x,
 			y:s.y,
-			deltaY:Math.sign(e.deltaY),
+			dx:Math.sign(e.deltaX),
+			dy:-Math.sign(e.deltaY),
 		});
  	},{
 		passive:false,
