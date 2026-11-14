@@ -392,6 +392,7 @@ BI_RGB = 0
 
 # Common key name -> virtual key code
 _VK = {
+	
 	"enter": 0x0D, "return": 0x0D, "tab": 0x09, "backspace": 0x08,
 	"escape": 0x1B, "esc": 0x1B, "space": 0x20, " ": 0x20, "delete": 0x2E, "del": 0x2E,
 	"up": 0x26, "down": 0x28, "left": 0x25, "right": 0x27,
@@ -400,12 +401,18 @@ _VK = {
 	"capslock": 0x14, "shift": 0x10, "ctrl": 0x11, "control": 0x11, "alt": 0x12,
 	"meta": 0x5B, 
 	"printscreen": 0x2C, "scrolllock": 0x91,
-	"\\": 0xDC, 
+	"\\": 0xDC, "|": 0xDC, 
 }
 
 
 def _vk_for_key(ev):
 	"""Resolve a browser key description to a VK code."""
+	rtv=None
+	t=ev.get("keyCode",None)
+	if type(t)==int: rtv=t
+	return rtv
+	
+	# deprecated of the following:
 	name = ev.get("key", "").lower()
 	if not name:
 		return None
@@ -712,6 +719,7 @@ img#screen {
 
 	let metaLoaded=false,vW=1920,vH=1080; // updated below from a metadata call
 
+	const returnFalse=()=>false;
 const task_afterMetaLoaded=()=>{
 	function send(ev){
 		fetch('/input', {
@@ -794,6 +802,7 @@ const task_afterMetaLoaded=()=>{
 		send({
 			type:'keydown',
 			key:e.key,
+			keyCode:e.keyCode,
 		});
 	},{
 		passive:false,
@@ -804,6 +813,7 @@ const task_afterMetaLoaded=()=>{
 		send({
 			type:'keyup',
 			key:e.key,
+			keyCode:e.keyCode,
 		});
 	});
 
