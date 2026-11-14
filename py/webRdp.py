@@ -806,6 +806,12 @@ const task_afterMetaLoaded=()=>{
 			key:e.key,
 		});
 	});
+
+	// disable context menu
+	(()=>{
+		const elements=document.body.getElementsByTagName('*');
+		for(let i=0,sz=elements.length;i<sz;++i) elements[i].oncontextmenu=returnFalse;
+	})();
 };
 
 	fetch('/meta').then(function(r){ return r.json(); }).
